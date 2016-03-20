@@ -1,6 +1,6 @@
 -- Rogue with Friends - a 2D, real-time, multiplayer roguelike
--- -----------------------------------------------------------
--- Released under the GPLv3 or later. See README.md for info.
+-- ---------------------------------------------------------------
+-- Released under the GNU AGPLv3 or later. See README.md for info.
 
 -- This file describes the configuration options to use with the LÖVE engine.
 
