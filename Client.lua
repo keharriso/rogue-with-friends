@@ -188,14 +188,17 @@ function handle.Perception(client, msg)
 		end
 	end
 
-	-- If the tiles reference entities that aren't yet known, create new
-	-- views to store their positions.
 	for entityId,pos in pairs(newPos) do
+		-- If a tile references an entity that isn't yet known, create
+		-- a new view to store its position, otherwise update the
+		-- existing position.
 		if client.entities[entityId] == nil then
 			client.entities[entityId] = {
 				id = entityId,
 				position = pos
 			}
+		else
+			client.entities[entityId].position = pos
 		end
 	end
 end
