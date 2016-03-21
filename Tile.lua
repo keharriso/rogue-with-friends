@@ -32,8 +32,12 @@ function Tile:getType()
 end
 
 -- Set the Tile.Type associated with this Tile.
-function Tile:setType(type)
-	self.type = type
+function Tile:setType(tileType)
+	if type(tileType) == "string" then
+		self.type = Tile.Type:require(tileType)
+	else
+		self.type = tileType
+	end
 end
 
 -- Return the Entity on this Tile (or nil if there is no such Entity).

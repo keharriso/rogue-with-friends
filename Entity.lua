@@ -71,8 +71,12 @@ function Entity:getType()
 end
 
 -- Set the Entity.Type associated with this Entity.
-function Entity:setType(type)
-	self.type = type
+function Entity:setType(entityType)
+	if type(entityType) == "string" then
+		self.type = Entity.Type:require(entityType)
+	else
+		self.type = entityType
+	end
 end
 
 -- Return the World that this Entity is a part of, if any.
