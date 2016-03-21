@@ -124,7 +124,7 @@ end
 -- A Data type representing the type of an Entity.
 Entity.Type = Data.new {
 	loadAll = function (self)
-		local entityTypes = dofile "data/entities.lua"
+		local entityTypes = love.filesystem.load "data/entities.lua"()
 		for name,entityType in pairs(entityTypes) do
 			entityType.name = name
 			setmetatable(entityType, Entity.Type.mt)

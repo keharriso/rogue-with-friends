@@ -49,7 +49,7 @@ end
 -- A Data type representing the type of a Tile.
 Tile.Type = Data.new {
 	loadAll = function (self)
-		local tileTypes = dofile "data/tiles.lua"
+		local tileTypes = love.filesystem.load "data/tiles.lua"()
 		for name,tileType in pairs(tileTypes) do
 			tileType.name = name
 			setmetatable(tileType, Tile.Type.mt)
