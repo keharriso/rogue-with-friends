@@ -155,7 +155,8 @@ function Server:update(dt)
 			-- Place the entity on some free tile.
 			local area = world:getArea(1)
 			for pos,tile in area:getTiles() do
-				if tile:getEntity() == nil then
+				local isSolid = tile:getType():isSolid()
+				if tile:getEntity() == nil and not isSolid then
 					world:apply {
 						type = "Move",
 						entity = entity,
@@ -265,12 +266,20 @@ if command == "host" then
 	local world = World.new()
 	local area = world:newArea {}
 	local pos = Position.new {0, 0}
-	for x=1,10 do
-		for y=1,10 do
+	for x=1,12 do
+		for y=1,12 do
 			pos:pack(x, y)
-			area:setTile(pos, Tile.new {type = "Floor"})
+			local tileType = "Floor"
+			if x == 1 or x == 12 or y == 1 or y == 12 then
+				tileType = "Wall"
+			end
+			area:setTile(pos, Tile.new {type = tileType})
 		end
 	end
+	pos:pack(4, 4); area:getTile(pos):setType "Wall"
+	pos:pack(9, 4); area:getTile(pos):setType "Wall"
+	pos:pack(4, 9); area:getTile(pos):setType "Wall"
+	pos:pack(9, 9); area:getTile(pos):setType "Wall"
 	server:setWorld(world)
 	server:run()
 end
