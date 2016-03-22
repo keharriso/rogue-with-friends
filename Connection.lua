@@ -2,7 +2,7 @@
 -- ---------------------------------------------------------------
 -- Released under the GNU AGPLv3 or later. See README.md for info.
 
-local json = require "json"
+local json = require "dkjson"
 
 local len = string.len
 local insert = table.insert
