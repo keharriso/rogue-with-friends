@@ -179,9 +179,7 @@ function handle.Perception(client, msg)
 	if msg.entities ~= nil then
 		for _,entity in ipairs(msg.entities) do
 			local old = client.entities[entity.id]
-			if newPos[entity.id] ~= nil then
-				entity.position = newPos[entity.id]
-			elseif old ~= nil and not clearPos[entity.id] then
+			if old ~= nil then
 				entity.position = old.position
 			end
 			client.entities[entity.id] = entity
@@ -189,17 +187,20 @@ function handle.Perception(client, msg)
 	end
 
 	for entityId,pos in pairs(newPos) do
-		-- If a tile references an entity that isn't yet known, create
-		-- a new view to store its position, otherwise update the
-		-- existing position.
-		if client.entities[entityId] == nil then
+		local entity = client.entities[entityId]
+		if entity ~= nil then
+			entity.position = pos
+		else
 			client.entities[entityId] = {
 				id = entityId,
 				position = pos
 			}
-		else
-			client.entities[entityId].position = pos
 		end
+		clearPos[entityId] = nil
+	end
+
+	for entityId,_ in pairs(clearPos) do
+		client.entities[entityId].position = nil
 	end
 end
 
