@@ -190,9 +190,9 @@ function EffectType.Move:observeEffect(entity, perception)
 	local oldArea, newArea = self.oldArea, self.area
 	local oldPos, newPos = self.oldPosition, self.position
 	local areaChanged = oldArea ~= newArea
+	local area = entity:getArea()
 
 	-- If you're in the same area, you see it.
-	local area = entity:getArea()
 	if area ~= nil then
 		if area == oldArea and oldPos ~= nil then
 			perception:addTileAt(oldPos)
@@ -207,8 +207,8 @@ function EffectType.Move:observeEffect(entity, perception)
 
 	-- In the special case that an entity is observing its own
 	-- area transition, produce a more complete perception.
-	if entity == self.entity and newArea ~= oldArea
-			and newArea ~= nil then
+	if entity == self.entity and area == newArea
+			and newArea ~= oldArea and newArea ~= nil then
 		for pos,tile in newArea:getTiles() do
 			perception:addTileAt(Position.decode(pos))
 			local tileEntity = tile:getEntity()
