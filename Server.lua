@@ -243,6 +243,17 @@ function buildIntent.Move(server, msgIntent)
 	end
 end
 
+-- [private] Build an Attack intent from a message.
+function buildIntent.Attack(server, msgIntent)
+	local targetId = tonumber(msgIntent.target)
+	if targetId ~= nil then
+		return Intent.new {
+			type = "Attack",
+			target = server:getWorld():getEntity(targetId)
+		}
+	end
+end
+
 
 local command = ...
 

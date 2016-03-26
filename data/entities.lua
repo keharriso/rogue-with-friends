@@ -5,7 +5,10 @@
 return {
 
 Human = {
-	moveSpeed = {Ground = 3}
+	moveSpeed = {Ground = 3},
+	hitPoints = 10,
+	damage = 1,
+	attackSpeed = 3
 };
 
 }

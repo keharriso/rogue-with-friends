@@ -80,6 +80,8 @@ end
 --   type = <string> or nil,
 --   position = <Position> or nil,
 --   action = <action-view> or nil,
+--   hitPoints = <number>,
+--   maxHitPoints = <number>
 -- }
 --
 -- The <action-view>, if there is one, has the following structure:
@@ -123,6 +125,11 @@ end
 -- Send an intent to move to a particular Position in the current area.
 function Client:sendMoveIntent(target)
 	sendIntent(self, {type = "Move", target = {target:unpack()}})
+end
+
+-- Send an intent to attack a given Entity.
+function Client:sendAttackIntent(targetId)
+	sendIntent(self, {type = "Attack", target = targetId})
 end
 
 -- [private] Incoming message handling table.

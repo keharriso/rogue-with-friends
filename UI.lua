@@ -110,11 +110,29 @@ local Image = Data.new {
 	end
 }
 
+-- [private] Draw a health bar at the specified coordinates.
+local function drawHealthBar(ui, health, sx, sy)
+	love.graphics.push("all")
+	local width, height = 4, round(ui:getTileSize() / 2)
+	local redY, redH = -(height / 2), round((1 - health) * height)
+	love.graphics.setColor(255, 0, 0)
+	love.graphics.rectangle("fill", sx, sy + redY, width, redH)
+	local greenY, greenH = redY + redH, height - redH
+	love.graphics.setColor(0, 255, 0)
+	love.graphics.rectangle("fill", sx, sy + greenY, width, greenH)
+	love.graphics.pop()
+end
+
 -- [private] Draw an entity at the specified coordinates.
 local function drawEntity(ui, entity, sx, sy)
 	local image = Image:get(entity.type)
-	local cx, cy = image:getWidth() / 2, image:getHeight() / 2
+	local width, height = image:getWidth(), image:getHeight()
+	local cx, cy = width / 2, height / 2
 	love.graphics.draw(image, sx - cx, sy - cy)
+	local health = entity.hitPoints / entity.maxHitPoints
+	if health < 1 - 1e-6 then
+		drawHealthBar(ui, health, sx + cx + 2, sy)
+	end
 end
 
 -- [private] Draw a tile at the specified coordinates.
@@ -159,9 +177,16 @@ end
 
 -- [private] Handle a mouse click.
 local function mouseclicked(ui, x, y, button)
+	local client = ui.client
 	local tx, ty = screen2tile(ui, x, y)
-	local target = Position.new {round(tx), round(ty)}
-	ui.client:sendMoveIntent(target)
+	local targetPos = Position.new {round(tx), round(ty)}
+	local targetTile = client:getTile(targetPos)
+	local targetEntity = targetTile and targetTile.entity
+	if targetEntity ~= nil and targetEntity ~= client:getIdentity() then
+		client:sendAttackIntent(targetEntity)
+	else
+		client:sendMoveIntent(targetPos)
+	end
 end
 
 -- Handle a mouse press.

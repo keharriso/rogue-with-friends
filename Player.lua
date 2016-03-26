@@ -78,6 +78,8 @@ function Player:sendPerception(perception)
 		entities[#entities + 1] = {
 			id = entity:getId(),
 			type = entity:getType():getName(),
+			hitPoints = entity:getHitPoints(),
+			maxHitPoints = entity:getType():getHitPoints(),
 			action = action and {
 				type = action:getType(),
 				subtype = action:getSubtype(),
@@ -86,6 +88,7 @@ function Player:sendPerception(perception)
 			}
 		}
 	end
+	msg.death = perception:isDeath() and true or nil
 	sendMessage(self, msg)
 end
 

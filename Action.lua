@@ -156,4 +156,83 @@ function ActionType.Move:complete(entity)
 	end
 end
 
+-- An Attack action attacks a target Entity. Parameters:
+-- {
+--   type = "Attack",
+--   target = <Entity>
+-- }
+ActionType.Attack = setmetatable({}, Action.mt)
+
+ActionType.Attack.mt = {__index = ActionType.Attack}
+
+-- [private] Cache useful information about this Action in the given context.
+local function Attack_cache(self, entity)
+	local area = entity:getArea()
+	local pos = entity:getPosition()
+	local target = self.target
+	local targetArea = target and target:getArea()
+	local targetPos = target and target:getPosition()
+	if area ~= self.area or pos ~= self.position
+			or targetArea ~= self.targetArea
+			or targetPos ~= self.targetPosition then
+		self.area = area
+		self.position = pos
+		self.targetArea = targetArea
+		self.targetPosition = targetPos
+		if area ~= nil and area == targetArea and pos ~= nil
+				and targetPos ~= nil then
+			self.distance = pos:getDistance(targetPos)
+		else
+			self.distance = nil
+		end
+	end
+	if entity ~= self.entity then
+		self.entity = entity
+		self.speed = entity:getType():getAttackSpeed()
+		self.damage = entity:getType():getDamage()
+	end
+end
+
+function ActionType.Attack:isLegal(entity)
+	Attack_cache(self, entity)
+	return self.distance ~= nil and self.distance < 1.5 and self.speed > 0
+end
+
+function ActionType.Attack:update(entity, dt)
+	local world = entity:getWorld()
+	if self:isLegal(entity) then
+		local progress = self:getProgress()
+		local tickProgress = self.speed * dt
+		local newProgress = math.min(progress + tickProgress, 1)
+		local realProgress = newProgress - progress
+		local tickElapsed = dt * realProgress / tickProgress
+		local dir = self.position:getDirection(self.targetPosition)
+		world:apply {
+			type = "Progress",
+			entity = entity,
+			progress = newProgress,
+			direction = dir
+		}
+		return tickElapsed
+	else
+		-- Cancel the action.
+		world:apply {
+			type = "Start",
+			entity = entity,
+			action = nil
+		}
+		return 0
+	end
+end
+
+function ActionType.Attack:complete(entity)
+	if self:isLegal(entity) then
+		entity:getWorld():apply {
+			type = "Damage",
+			entity = self.target,
+			damage = self.damage
+		}
+	end
+end
+
 return Action

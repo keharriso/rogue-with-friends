@@ -20,13 +20,17 @@ Entity.mt = {__index = Entity}
 --   area = <Area> or nil,
 --   position = <Position> or nil,
 --   intent = <Intent> or nil,
---   action = <Action> or nil
+--   action = <Action> or nil,
+--   hitPoints = <number> or nil
 -- }
 --
 -- `proto` is consumed and should not be reused or modified.
 function Entity.new(proto)
 	if type(proto.type) == "string" then
 		proto.type = Entity.Type:require(proto.type)
+	end
+	if proto.hitPoints == nil then
+		proto.hitPoints = proto.type:getHitPoints()
 	end
 	return setmetatable(proto, Entity.mt)
 end
@@ -125,6 +129,16 @@ function Entity:setAction(action)
 	self.action = action
 end
 
+-- Return the current hit points of this Entity.
+function Entity:getHitPoints()
+	return self.hitPoints
+end
+
+-- Set the current hit points of this Entity.
+function Entity:setHitPoints(hitPoints)
+	self.hitPoints = hitPoints
+end
+
 -- A Data type representing the type of an Entity.
 Entity.Type = Data.new {
 	loadAll = function (self)
@@ -156,6 +170,21 @@ end
 -- Return the base speed of this Entity.Type for the given movement type.
 function Entity.Type:getMoveSpeed(moveType)
 	return self.moveSpeed[moveType] or 0
+end
+
+-- Return the base hit points for this Entity.Type.
+function Entity.Type:getHitPoints()
+	return self.hitPoints
+end
+
+-- Return the base attack damage for this Entity.Type.
+function Entity.Type:getDamage()
+	return self.damage
+end
+
+-- Return the base attack speed for this Entity.Type.
+function Entity.Type:getAttackSpeed()
+	return self.attackSpeed
 end
 
 return Entity

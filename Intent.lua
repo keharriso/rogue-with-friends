@@ -71,4 +71,51 @@ function IntentType.Move:generateAction(entity)
 	end
 end
 
+-- An Attack intent tries to move an Entity within range of a target Entity
+-- and then generate Attack actions until the target is deceased. Parameters:
+-- {
+--   type = "Attack",
+--   target = <Entity> or nil
+-- }
+IntentType.Attack = setmetatable({}, Intent.mt)
+
+IntentType.Attack.mt = {__index = IntentType.Attack}
+
+-- Return the Entity that this Attack intent is targeting.
+function IntentType.Attack:getTarget()
+	return self.target
+end
+
+-- Set the Entity that this Attack intent is targeting.
+function IntentType.Attack:setTarget(entity)
+	self.target = entity
+end
+
+function IntentType.Attack:generateAction(entity)
+	local currentArea = entity:getArea()
+	local currentPos = entity:getPosition()
+	local target = self:getTarget()
+	local targetArea = target and target:getArea()
+	local targetPos = target and target:getPosition()
+	if currentArea ~= nil and currentArea == targetArea
+			and currentPos ~= nil and targetPos ~= nil then
+		if currentPos:getDistance(targetPos) < 1.5 then
+			return Action.new {
+				type = "Attack",
+				target = target
+			}
+		else
+			local moveIntent = self.moveIntent
+			if moveIntent == nil then
+				moveIntent = Intent.new {
+					type = "Move"
+				}
+				self.moveIntent = moveIntent
+			end
+			moveIntent:setTarget(targetPos)
+			return moveIntent:generateAction(entity)
+		end
+	end
+end
+
 return Intent

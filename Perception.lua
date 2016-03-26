@@ -14,7 +14,8 @@ function Perception.new()
 	return setmetatable({
 		area = nil,
 		tiles = {},
-		entities = {}
+		entities = {},
+		death = false
 	}, Perception.mt)
 end
 
@@ -53,9 +54,21 @@ function Perception:addEntity(entity)
 	self.entities[entity:getId()] = entity
 end
 
+-- Return whether or not the subject of this Perception died.
+function Perception:isDeath()
+	return self.death
+end
+
+-- Set whether or not the subject of this Perception died.
+function Perception:setDeath(death)
+	self.death = death
+end
+
 -- Return true if this Perception has no observations, and false otherwise.
 function Perception:isEmpty()
-	return next(self.tiles) == nil and next(self.entities) == nil
+	return not self.death
+			and next(self.tiles) == nil
+			and next(self.entities) == nil
 end
 
 return Perception

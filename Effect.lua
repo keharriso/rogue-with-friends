@@ -219,6 +219,67 @@ function EffectType.Move:observeEffect(entity, perception)
 	end
 end
 
+-- A Damage Effect incurs damage to an Entity, causing a Kill effect if hit
+-- points drop to 0.
+-- {
+--   type = "Damage",
+--   entity = <Entity>,
+--   damage = <number>
+-- }
+EffectType.Damage = setmetatable({}, Effect.mt)
+
+EffectType.Damage.mt = {__index = EffectType.Damage}
+
+function EffectType.Damage:applyEffect(effects)
+	local entity = self.entity
+	self.area = entity:getArea()
+	self.position = entity:getPosition()
+	local hitPoints = entity:getHitPoints() - self.damage
+	if hitPoints < 1e-6 then
+		effects:apply {
+			type = "Kill",
+			entity = entity
+		}
+	else
+		entity:setHitPoints(hitPoints)
+	end
+end
+
+EffectType.Damage.observeEffect = observeEntity
+
+-- A Kill Effect handles Entity death.
+-- {
+--   type = "Kill",
+--   entity = <Entity>
+-- }
+EffectType.Kill = setmetatable({}, Effect.mt)
+
+EffectType.Kill.mt = {__index = EffectType.Kill}
+
+function EffectType.Kill:applyEffect(effects)
+	local entity = self.entity
+	self.area = entity:getArea()
+	self.position = entity:getPosition()
+	entity:setHitPoints(0)
+	-- Remove the entity from from the area.
+	effects:apply {
+		type = "Move",
+		entity = entity,
+		area = nil
+	}
+	local world = entity:getWorld()
+	if world ~= nil then
+		world:removeEntity(entity)
+	end
+end
+
+function EffectType.Kill:observeEffect(entity, perception)
+	observeEntity(self, entity, perception)
+	if entity == self.entity then
+		perception:setDeath(true)
+	end
+end
+
 -- A List of Effects. Provides the Effect.List:add and Effect.List:apply
 -- methods for easy addition and application.
 Effect.List = {}
