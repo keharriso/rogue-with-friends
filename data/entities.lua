@@ -4,6 +4,8 @@
 
 return {
 
-Human = {};
+Human = {
+	moveSpeed = {Ground = 3}
+};
 
 }

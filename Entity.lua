@@ -131,6 +131,9 @@ Entity.Type = Data.new {
 		local entityTypes = love.filesystem.load "data/entities.lua"()
 		for name,entityType in pairs(entityTypes) do
 			entityType.name = name
+			if entityType.moveSpeed == nil then
+				entityType.moveSpeed = {}
+			end
 			setmetatable(entityType, Entity.Type.mt)
 		end
 		return entityTypes
@@ -142,6 +145,17 @@ Entity.Type.mt = {__index = Entity.Type}
 -- Return the name of this Entity.Type.
 function Entity.Type:getName()
 	return self.name
+end
+
+-- Return an iterator over all (movement type, base speed) associations for
+-- this Entity.Type.
+function Entity.Type:getMoveSpeeds()
+	return pairs(self.moveSpeed)
+end
+
+-- Return the base speed of this Entity.Type for the given movement type.
+function Entity.Type:getMoveSpeed(moveType)
+	return self.moveSpeed[moveType] or 0
 end
 
 return Entity

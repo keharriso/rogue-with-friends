@@ -155,7 +155,8 @@ function Server:update(dt)
 			-- Place the entity on some free tile.
 			local area = world:getArea(1)
 			for pos,tile in area:getTiles() do
-				local isSolid = tile:getType():isSolid()
+				local isSolid = tile:getType()
+						:getMoveSpeed "Ground" == 0
 				if tile:getEntity() == nil and not isSolid then
 					world:apply {
 						type = "Move",

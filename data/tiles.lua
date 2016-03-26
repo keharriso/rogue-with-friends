@@ -4,8 +4,10 @@
 
 return {
 
-Floor = {solid = false};
+Floor = {
+	moveSpeed = {Ground = 1}
+};
 
-Wall = {solid = true};
+Wall = {};
 
 }

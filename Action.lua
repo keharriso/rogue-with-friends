@@ -26,11 +26,14 @@ local ActionType = {}
 -- following fields:
 -- {
 --   type = <string>,
+--   subtype = <string> or nil,
 --   direction = <string> or nil
 -- }
 --
 -- `type` should be the name of a valid Action type. See below for the
 -- different Action types.
+-- `subtype`, when not nil, refers to an additional action subtype (e.g., the
+-- movement type for a Move action).
 -- `dir`, when not nil, should be in Position.getDirections.
 --
 -- `proto` is consumed, and should not be reused or modified.
@@ -41,6 +44,11 @@ end
 -- Return the type of this Action as a string.
 function Action:getType()
 	return self.type
+end
+
+-- Return the subtype of this Action as a string (or nil).
+function Action:getSubtype()
+	return self.subtype
 end
 
 -- Return the direction of this Action, if there is one.
@@ -68,19 +76,23 @@ end
 -- Parameters:
 -- {
 --   type = "Move",
+--   subtype = <string>,
 --   direction = <string>
 -- }
+--
+-- `subtype` should be the movement type to use.
 ActionType.Move = setmetatable({}, Action.mt)
 
 ActionType.Move.mt = {__index = ActionType.Move}
 
 -- [private] Return the movement speed for the given Entity and Tiles.
-local function Move_getSpeed(entity, tile, targetTile)
-	if targetTile == nil or targetTile:getEntity() ~= nil
-			or targetTile:getType():isSolid() then
-		return 0
+local function Move_getSpeed(entity, tile, targetTile, moveType)
+	if targetTile ~= nil and targetTile:getEntity() == nil then
+		local baseSpeed = entity:getType():getMoveSpeed(moveType)
+		local speedFactor = targetTile:getType():getMoveSpeed(moveType)
+		return baseSpeed * speedFactor
 	else
-		return 3
+		return 0
 	end
 end
 
@@ -98,7 +110,7 @@ local function Move_cache(self, entity)
 	self.targetPosition = targetPos
 	self.targetTile = targetTile
 	self.distance = pos and targetPos and pos:getDistance(targetPos)
-	self.speed = Move_getSpeed(entity, tile, targetTile)
+	self.speed = Move_getSpeed(entity, tile, targetTile, self:getSubtype())
 end
 
 function ActionType.Move:isLegal(entity)

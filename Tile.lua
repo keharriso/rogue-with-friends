@@ -56,6 +56,9 @@ Tile.Type = Data.new {
 		local tileTypes = love.filesystem.load "data/tiles.lua"()
 		for name,tileType in pairs(tileTypes) do
 			tileType.name = name
+			if tileType.moveSpeed == nil then
+				tileType.moveSpeed = {}
+			end
 			setmetatable(tileType, Tile.Type.mt)
 		end
 		return tileTypes
@@ -69,9 +72,15 @@ function Tile.Type:getName()
 	return self.name
 end
 
--- Return true if this Tile type prevents movement, and false otherwise.
-function Tile.Type:isSolid()
-	return self.solid
+-- Return an iterator over all (movement type, speed factor) associations for
+-- this Tile.Type.
+function Tile.Type:getMoveSpeeds()
+	return pairs(self.moveSpeed)
+end
+
+-- Return the speed factor of this Tile.Type for the given movement type.
+function Tile.Type:getMoveSpeed(moveType)
+	return self.moveSpeed[moveType] or 0
 end
 
 return Tile

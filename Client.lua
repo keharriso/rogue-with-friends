@@ -85,6 +85,7 @@ end
 -- The <action-view>, if there is one, has the following structure:
 -- {
 --   type = <string>,
+--   subtype = <string> or nil,
 --   direction = <string> or nil,
 --   progress = <number>
 -- }

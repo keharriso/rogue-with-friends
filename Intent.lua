@@ -65,6 +65,7 @@ function IntentType.Move:generateAction(entity)
 		local dir = current:getDirection(target)
 		return Action.new {
 			type = "Move",
+			subtype = "Ground",
 			direction = dir
 		}
 	end

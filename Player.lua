@@ -80,6 +80,7 @@ function Player:sendPerception(perception)
 			type = entity:getType():getName(),
 			action = action and {
 				type = action:getType(),
+				subtype = action:getSubtype(),
 				direction = action:getDirection(),
 				progress = action:getProgress()
 			}
