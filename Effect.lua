@@ -143,7 +143,7 @@ function EffectType.Complete:applyEffect(effects)
 	end
 end
 
-EffectType.Start.observeEffect = observeEntity
+EffectType.Complete.observeEffect = observeEntity
 
 -- A Move effect updates the position and area of an entity. Parameters:
 -- {
