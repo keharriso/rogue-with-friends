@@ -15,6 +15,7 @@ function Perception.new()
 		area = nil,
 		tiles = {},
 		entities = {},
+		structures = {},
 		death = false
 	}, Perception.mt)
 end
@@ -39,19 +40,34 @@ function Perception:addTileAt(pos)
 	self.tiles[pos:encode()] = self:getArea():getTile(pos)
 end
 
+-- [private] Return an iterator over all values in the given table.
+local function values(t)
+	local k = nil
+	return function ()
+		local v
+		k, v = next(t, k)
+		return v
+	end
+end
+
 -- Return an iterator over all Entity observations.
 function Perception:getEntities()
-	local entities = self.entities
-	local id = nil
-	return function ()
-		id, entity = next(entities, id)
-		return entity
-	end
+	return values(self.entities)
 end
 
 -- Observe the given Entity.
 function Perception:addEntity(entity)
 	self.entities[entity:getId()] = entity
+end
+
+-- Return an iterator over all Structure observations.
+function Perception:getStructures()
+	return values(self.structures)
+end
+
+-- Observe the given Structure.
+function Perception:addStructure(structure)
+	self.structures[structure:getId()] = structure
 end
 
 -- Return whether or not the subject of this Perception died.
@@ -69,6 +85,7 @@ function Perception:isEmpty()
 	return not self.death
 			and next(self.tiles) == nil
 			and next(self.entities) == nil
+			and next(self.structures) == nil
 end
 
 return Perception

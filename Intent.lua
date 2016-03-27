@@ -65,7 +65,6 @@ function IntentType.Move:generateAction(entity)
 		local dir = current:getDirection(target)
 		return Action.new {
 			type = "Move",
-			subtype = "Ground",
 			direction = dir
 		}
 	end
@@ -102,6 +101,55 @@ function IntentType.Attack:generateAction(entity)
 		if currentPos:getDistance(targetPos) < 1.5 then
 			return Action.new {
 				type = "Attack",
+				target = target
+			}
+		else
+			local moveIntent = self.moveIntent
+			if moveIntent == nil then
+				moveIntent = Intent.new {
+					type = "Move"
+				}
+				self.moveIntent = moveIntent
+			end
+			moveIntent:setTarget(targetPos)
+			return moveIntent:generateAction(entity)
+		end
+	end
+end
+
+-- An Interact intent tries to move an Entity within range of a target
+-- Structure and then generate an Interact action. Parameters:
+-- {
+--   type = "Interact",
+--   target = <Structure> or nil
+-- }
+IntentType.Interact = setmetatable({}, Intent.mt)
+
+IntentType.Interact.mt = {__index = IntentType.Interact}
+
+-- Return the Structure that this Interact intent is targeting.
+function IntentType.Interact:getTarget()
+	return self.target
+end
+
+-- Set the Structure that this Interact intent is targeting.
+function IntentType.Interact:setTarget(entity)
+	self.target = entity
+end
+
+function IntentType.Interact:generateAction(entity)
+	local currentArea = entity:getArea()
+	local currentPos = entity:getPosition()
+	local target = self:getTarget()
+	local targetArea = target and target:getArea()
+	local targetPos = target and target:getPosition()
+	if currentArea ~= nil and currentArea == targetArea
+			and currentPos ~= nil and targetPos ~= nil
+			and not self.done then
+		if currentPos == targetPos then
+			self.done = true
+			return Action.new {
+				type = "Interact",
 				target = target
 			}
 		else

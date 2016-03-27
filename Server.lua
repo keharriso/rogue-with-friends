@@ -89,9 +89,33 @@ function Server:getPlayers()
 	end
 end
 
+-- [private] Assign a player to an entity.
+local function assignEntity(world, player)
+	local entity = world:newEntity {type = "Human"}
+	player:setEntity(entity)
+	player:sendIdentity(entity:getId())
+	-- Place the entity on some free tile.
+	local area = world:getArea(1)
+	for pos,tile in area:getTiles() do
+		if entity:getMovement(tile) ~= nil then
+			world:apply {
+				type = "Move",
+				entity = entity,
+				area = area,
+				position = Position.decode(pos)
+			}
+			break
+		end
+	end
+end
+
 -- Add a Player to this Server.
 function Server:addPlayer(player)
 	self.players[#self.players + 1] = player
+	local world = self:getWorld()
+	if world ~= nil then
+		assignEntity(world, player)
+	end
 end
 
 -- [private] Remove the Player at the given index.
@@ -142,34 +166,10 @@ function Server:update(dt)
 	local effects = world:update(dt)
 	-- Handle players (backwards, so we can remove properly).
 	local players = self.players
+	local needsEntity = {}
 	for i=#players,1,-1 do
 		local player = players[i]
-		local id = player:getId()
-		local entity = nil
-		-- Assign new players to an entity.
-		if id == nil then
-			entity = world:newEntity {type = "Human"}
-			id = entity.id
-			player:setId(id)
-			player:sendIdentity(id)
-			-- Place the entity on some free tile.
-			local area = world:getArea(1)
-			for pos,tile in area:getTiles() do
-				local isSolid = tile:getType()
-						:getMoveSpeed "Ground" == 0
-				if tile:getEntity() == nil and not isSolid then
-					world:apply {
-						type = "Move",
-						entity = entity,
-						area = area,
-						position = Position.decode(pos)
-					}
-					break
-				end
-			end
-		else
-			entity = world:getEntity(id)
-		end
+		local entity = player:getEntity()
 		-- Handle player messages.
 		local msg = player:receive()
 		while msg ~= nil do
@@ -189,13 +189,15 @@ function Server:update(dt)
 		if not player:isConnected() then
 			removePlayerAt(self, i)
 			world:apply {
-				type = "Move",
-				entity = entity,
-				area = nil,
-				position = nil
+				type = "Kill",
+				entity = entity
 			}
-			world:removeEntity(entity)
+		elseif entity ~= world:getEntity(entity:getId()) then
+			needsEntity[#needsEntity + 1] = player
 		end
+	end
+	for i=1,#needsEntity do
+		assignEntity(world, needsEntity[i])
 	end
 end
 
@@ -217,8 +219,7 @@ local buildIntent = {}
 
 -- [private] Handle an intent message.
 function handle.Intent(server, player, msg)
-	local id = player:getId()
-	local entity = id and server:getWorld():getEntity(id)
+	local entity = player:getEntity()
 	if entity ~= nil then
 		local msgIntent = msg.intent
 		local intentType = msgIntent and msgIntent.type
@@ -254,6 +255,17 @@ function buildIntent.Attack(server, msgIntent)
 	end
 end
 
+-- [private] Build an Interact intent from a message.
+function buildIntent.Interact(server, msgIntent)
+	local targetId = tonumber(msgIntent.target)
+	if targetId ~= nil then
+		return Intent.new {
+			type = "Interact",
+			target = server:getWorld():getStructure(targetId)
+		}
+	end
+end
+
 
 local command = ...
 
@@ -267,32 +279,46 @@ if command == "host" then
 
 	Data.init()
 	local server = Server.new()
+
+	-- For now, simply construct a static and boring World.
+	local world = World.new()
+	local pos = Position.new {0, 0}
+	local function newArea(width, height)
+		local area = world:newArea {}
+		for x=1,width do
+			for y=1,height do
+				pos:pack(x, y)
+				local tileType = "Floor"
+				if x == 1 or x == width
+						or y == 1 or y == height then
+					tileType = "Wall"
+				end
+				area:setTile(pos, Tile.new {type = tileType})
+			end
+		end
+		return area
+	end
+	local function setTile(area, x, y, tileType)
+		pos:pack(x, y); area:getTile(pos):setType(tileType)
+	end
+	local area1 = newArea(12, 12)
+	setTile(area1, 4, 4, "Wall")
+	setTile(area1, 9, 4, "Wall")
+	setTile(area1, 4, 9, "Wall")
+	setTile(area1, 9, 9, "Wall")
+	server:setWorld(world)
+
+	-- Bind to port if specified.
 	if port then
 		assert(server:bind(tonumber(port)))
 	end
+
+	-- Add local player if specified.
 	if channelIn ~= nil and channelOut ~= nil then
 		local con = Connection.fromLoveChannels(channelIn, channelOut)
 		server:addPlayer(Player.new {connection = con})
 	end
-	-- For now, simply construct a static and boring World.
-	local world = World.new()
-	local area = world:newArea {}
-	local pos = Position.new {0, 0}
-	for x=1,12 do
-		for y=1,12 do
-			pos:pack(x, y)
-			local tileType = "Floor"
-			if x == 1 or x == 12 or y == 1 or y == 12 then
-				tileType = "Wall"
-			end
-			area:setTile(pos, Tile.new {type = tileType})
-		end
-	end
-	pos:pack(4, 4); area:getTile(pos):setType "Wall"
-	pos:pack(9, 4); area:getTile(pos):setType "Wall"
-	pos:pack(4, 9); area:getTile(pos):setType "Wall"
-	pos:pack(9, 9); area:getTile(pos):setType "Wall"
-	server:setWorld(world)
+
 	server:run()
 end
 

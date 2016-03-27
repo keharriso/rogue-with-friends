@@ -26,6 +26,7 @@ Client.mt = {__index = Client}
 local function resetView(client)
 	client.tiles = {}
 	client.entities = {}
+	client.structures = {}
 end
 
 -- Construct a new client from the given prototype. In particular, `proto`
@@ -98,6 +99,20 @@ function Client:getEntity(id)
 	return self.entities[id]
 end
 
+-- Return the view that this Client has of the structure with the given id (or
+-- nil if there is no such view). The returned view has the following
+-- structure:
+-- {
+--   id = <number>,
+--   type = <string> or nil
+-- }
+--
+-- The returned view is valid until the next call to Client:update, and it
+-- should not be modified.
+function Client:getStructure(id)
+	return self.structures[id]
+end
+
 -- Get the state of the underlying connection, returning true for open and
 -- false for closed.
 function Client:isConnected()
@@ -130,6 +145,11 @@ end
 -- Send an intent to attack a given Entity.
 function Client:sendAttackIntent(targetId)
 	sendIntent(self, {type = "Attack", target = targetId})
+end
+
+-- Send an intent to interact with a given structure.
+function Client:sendInteractIntent(targetId)
+	sendIntent(self, {type = "Interact", target = targetId})
 end
 
 -- [private] Incoming message handling table.
@@ -209,6 +229,13 @@ function handle.Perception(client, msg)
 
 	for entityId,_ in pairs(clearPos) do
 		client.entities[entityId].position = nil
+	end
+
+	-- Handle structure perceptions.
+	if msg.structures ~= nil then
+		for _,structure in ipairs(msg.structures) do
+			client.structures[structure.id] = structure
+		end
 	end
 end
 

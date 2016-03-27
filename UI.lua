@@ -135,11 +135,25 @@ local function drawEntity(ui, entity, sx, sy)
 	end
 end
 
+-- [private] Draw a structure at the specified coordinates.
+local function drawStructure(ui, structure, sx, sy)
+	local image = Image:get(structure.type)
+	local width, height = image:getWidth(), image:getHeight()
+	local cx, cy = width / 2, height / 2
+	love.graphics.draw(image, sx - cx, sy - cy)
+end
+
 -- [private] Draw a tile at the specified coordinates.
 local function drawTile(ui, tile, sx, sy)
 	local tileCenter = ui:getTileSize() / 2
 	local image = Image:get(tile.type)
 	love.graphics.draw(image, sx - tileCenter, sy - tileCenter)
+	if tile.structure ~= nil then
+		local structure = ui.client:getStructure(tile.structure)
+		if structure ~= nil then
+			drawStructure(ui, structure, sx, sy)
+		end
+	end
 	if tile.entity ~= nil then
 		local entity = ui.client:getEntity(tile.entity)
 		if entity ~= nil then
@@ -182,8 +196,11 @@ local function mouseclicked(ui, x, y, button)
 	local targetPos = Position.new {round(tx), round(ty)}
 	local targetTile = client:getTile(targetPos)
 	local targetEntity = targetTile and targetTile.entity
+	local targetStructure = targetTile and targetTile.structure
 	if targetEntity ~= nil and targetEntity ~= client:getIdentity() then
 		client:sendAttackIntent(targetEntity)
+	elseif targetStructure ~= nil then
+		client:sendInteractIntent(targetStructure)
 	else
 		client:sendMoveIntent(targetPos)
 	end

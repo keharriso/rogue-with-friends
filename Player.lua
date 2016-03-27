@@ -19,20 +19,20 @@ Player.mt = {__index = Player}
 -- following fields:
 -- {
 --   connection = <Connection>,
---   id = <number> or nil
+--   entity = <Entity> or nil
 -- }
 function Player.new(proto)
 	return setmetatable(proto, Player.mt)
 end
 
--- Return the ID associated with this Player, if there is one.
-function Player:getId()
-	return self.id
+-- Return the Entity associated with this Player if there is one.
+function Player:getEntity()
+	return self.entity
 end
 
--- Set the ID associated with this Player.
-function Player:setId(id)
-	self.id = id
+-- Set the Entity associated with this Player.
+function Player:setEntity(entity)
+	self.entity = entity
 end
 
 -- Get the state of the underlying connection, returning true for open and
@@ -62,16 +62,19 @@ end
 
 -- Send a perception message.
 function Player:sendPerception(perception)
-	local tiles, entities = {}, {}
-	local msg = {type = "Perception", tiles = tiles, entities = entities}
+	local tiles, entities, structures = {}, {}, {}
+	local msg = {type = "Perception"}
 	local area = perception:getArea()
 	msg.area = area and area:getId()
 	for pos,tile in perception:getTiles() do
 		local entity = tile:getEntity()
+		local structure = tile:getStructure()
 		tiles[pos] = {
 			type = tile:getType():getName(),
-			entity = entity and entity:getId()
+			entity = entity and entity:getId(),
+			structure = structure and structure:getId()
 		}
+		msg.tiles = tiles
 	end
 	for entity in perception:getEntities() do
 		local action = entity:getAction()
@@ -87,6 +90,14 @@ function Player:sendPerception(perception)
 				progress = action:getProgress()
 			}
 		}
+		msg.entities = entities
+	end
+	for structure in perception:getStructures() do
+		structures[#structures + 1] = {
+			id = structure:getId(),
+			type = structure:getType():getName()
+		}
+		msg.structures = structures
 	end
 	msg.death = perception:isDeath() and true or nil
 	sendMessage(self, msg)

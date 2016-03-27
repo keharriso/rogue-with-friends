@@ -139,6 +139,21 @@ function Entity:setHitPoints(hitPoints)
 	self.hitPoints = hitPoints
 end
 
+-- Return the best (movement type, speed) pair for moving this Entity to the
+-- given Tile.
+function Entity:getMovement(tile)
+	local bestType, bestSpeed = nil, 0
+	if tile ~= nil and not tile:isOccupied() then
+		for moveType,baseSpeed in self:getType():getMoveSpeeds() do
+			local speed = baseSpeed * tile:getMoveSpeed(moveType)
+			if speed > bestSpeed then
+				bestType, bestSpeed = moveType, speed
+			end
+		end
+	end
+	return bestType, bestSpeed
+end
+
 -- A Data type representing the type of an Entity.
 Entity.Type = Data.new {
 	loadAll = function (self)

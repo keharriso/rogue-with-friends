@@ -14,8 +14,9 @@ Tile.mt = {__index = Tile}
 -- Construct a new Tile from the given prototype. `proto` should provide the
 -- following fields:
 -- {
---   type = <Tile.Type> or <string>
---   entity = <Entity or nil>
+--   type = <Tile.Type> or <string>,
+--   entity = <Entity or nil>,
+--   structure = <Structure or nil>
 -- }
 --
 -- `proto` is consumed and should not be reused or modified.
@@ -40,6 +41,12 @@ function Tile:setType(tileType)
 	end
 end
 
+-- Return true if there is an Entity or Structure that occupies the space on
+-- this Tile, and false otherwise.
+function Tile:isOccupied()
+	return self:getEntity() ~= nil
+end
+
 -- Return the Entity on this Tile (or nil if there is no such Entity).
 function Tile:getEntity()
 	return self.entity
@@ -48,6 +55,21 @@ end
 -- Set the Entity on this Tile.
 function Tile:setEntity(entity)
 	self.entity = entity
+end
+
+-- Return the Structure on this Tile (or nil if there is no Structure).
+function Tile:getStructure()
+	return self.structure
+end
+
+-- Set the Structure on this Tile.
+function Tile:setStructure(structure)
+	self.structure = structure
+end
+
+-- Return the speed factor of this Tile for the given movement type.
+function Tile:getMoveSpeed(moveType)
+	return self:getType():getMoveSpeed(moveType)
 end
 
 -- A Data type representing the type of a Tile.

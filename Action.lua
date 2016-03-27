@@ -51,6 +51,11 @@ function Action:getSubtype()
 	return self.subtype
 end
 
+-- Set the subtype of this Action.
+function Action:setSubtype(subtype)
+	self.subtype = subtype
+end
+
 -- Return the direction of this Action, if there is one.
 function Action:getDirection()
 	return self.direction
@@ -72,29 +77,42 @@ function Action:setProgress(progress)
 	self.progress = progress
 end
 
+-- [private] Generic update function for actions. Relies on isLegal to cache
+-- action speed as `self.speed` in completions per second.
+local function genericUpdate(self, entity, dt)
+	local world = entity:getWorld()
+	if self:isLegal(entity) then
+		local progress = self:getProgress()
+		local tickProgress = self.speed * dt
+		local newProgress = math.min(progress + tickProgress, 1)
+		local realProgress = newProgress - progress
+		local tickElapsed = dt * realProgress / tickProgress
+		world:apply {
+			type = "Progress",
+			entity = entity,
+			progress = newProgress
+		}
+		return tickElapsed
+	else
+		-- Cancel the action.
+		world:apply {
+			type = "Start",
+			entity = entity,
+			action = nil
+		}
+		return 0
+	end
+end
+
 -- A Move action moves an entity to a neighboring Position in the same Area.
 -- Parameters:
 -- {
 --   type = "Move",
---   subtype = <string>,
 --   direction = <string>
 -- }
---
--- `subtype` should be the movement type to use.
 ActionType.Move = setmetatable({}, Action.mt)
 
 ActionType.Move.mt = {__index = ActionType.Move}
-
--- [private] Return the movement speed for the given Entity and Tiles.
-local function Move_getSpeed(entity, tile, targetTile, moveType)
-	if targetTile ~= nil and targetTile:getEntity() == nil then
-		local baseSpeed = entity:getType():getMoveSpeed(moveType)
-		local speedFactor = targetTile:getType():getMoveSpeed(moveType)
-		return baseSpeed * speedFactor
-	else
-		return 0
-	end
-end
 
 -- [private] Cache useful information about this Action in the given context.
 local function Move_cache(self, entity)
@@ -109,8 +127,11 @@ local function Move_cache(self, entity)
 	self.tile = tile
 	self.targetPosition = targetPos
 	self.targetTile = targetTile
-	self.distance = pos and targetPos and pos:getDistance(targetPos)
-	self.speed = Move_getSpeed(entity, tile, targetTile, self:getSubtype())
+	local distance = pos and targetPos and pos:getDistance(targetPos)
+	local moveType, speed = entity:getMovement(targetTile)
+	self:setSubtype(moveType)
+	self.distance = distance
+	self.speed = (distance and speed and speed / distance) or 0
 end
 
 function ActionType.Move:isLegal(entity)
@@ -118,32 +139,7 @@ function ActionType.Move:isLegal(entity)
 	return self.speed > 0
 end
 
-function ActionType.Move:update(entity, dt)
-	local world = entity:getWorld()
-	if self:isLegal(entity) then
-		local progress = self:getProgress()
-		local tickDist = self.speed * dt
-		local tickProgress = tickDist / self.distance
-		local newProgress = math.min(progress + tickProgress, 1)
-		local realProgress = newProgress - progress
-		local tickElapsed = dt * realProgress / tickProgress
-		world:apply {
-			type = "Progress",
-			entity = entity,
-			progress = newProgress,
-			direction = self:getDirection()
-		}
-		return tickElapsed
-	else
-		-- Cancel the action.
-		world:apply {
-			type = "Start",
-			entity = entity,
-			action = nil
-		}
-		return 0
-	end
-end
+ActionType.Move.update = genericUpdate
 
 function ActionType.Move:complete(entity)
 	if self:isLegal(entity) then
@@ -181,8 +177,10 @@ local function Attack_cache(self, entity)
 		self.targetPosition = targetPos
 		if area ~= nil and area == targetArea and pos ~= nil
 				and targetPos ~= nil then
+			self:setDirection(pos:getDirection(targetPos))
 			self.distance = pos:getDistance(targetPos)
 		else
+			self:setDirection(nil)
 			self.distance = nil
 		end
 	end
@@ -198,32 +196,7 @@ function ActionType.Attack:isLegal(entity)
 	return self.distance ~= nil and self.distance < 1.5 and self.speed > 0
 end
 
-function ActionType.Attack:update(entity, dt)
-	local world = entity:getWorld()
-	if self:isLegal(entity) then
-		local progress = self:getProgress()
-		local tickProgress = self.speed * dt
-		local newProgress = math.min(progress + tickProgress, 1)
-		local realProgress = newProgress - progress
-		local tickElapsed = dt * realProgress / tickProgress
-		local dir = self.position:getDirection(self.targetPosition)
-		world:apply {
-			type = "Progress",
-			entity = entity,
-			progress = newProgress,
-			direction = dir
-		}
-		return tickElapsed
-	else
-		-- Cancel the action.
-		world:apply {
-			type = "Start",
-			entity = entity,
-			action = nil
-		}
-		return 0
-	end
-end
+ActionType.Attack.update = genericUpdate
 
 function ActionType.Attack:complete(entity)
 	if self:isLegal(entity) then
@@ -232,6 +205,60 @@ function ActionType.Attack:complete(entity)
 			entity = self.target,
 			damage = self.damage
 		}
+	end
+end
+
+-- An Interact action triggers an interaction with the given Structure.
+-- Parameters:
+-- {
+--   type = "Interact",
+--   target = <Structure>
+-- }
+ActionType.Interact = setmetatable({}, Action.mt)
+
+ActionType.Interact.mt = {__index = ActionType.Interact}
+
+-- [private] Cache useful information about this Action in the given context.
+local function Interact_cache(self, entity)
+	local area = entity:getArea()
+	local pos = entity:getPosition()
+	local target = self.target
+	local targetArea = target and target:getArea()
+	local targetPos = target and target:getPosition()
+	if area ~= self.area or pos ~= self.position
+			or targetArea ~= self.targetArea
+			or targetPos ~= self.targetPosition then
+		self.area = area
+		self.position = pos
+		self.targetArea = targetArea
+		self.targetPosition = targetPos
+		if area ~= nil and area == targetArea and pos ~= nil
+				and targetPos ~= nil then
+			self.distance = pos:getDistance(targetPos)
+		else
+			self.distance = nil
+		end
+	end
+	local interactTime = target:getType():getInteractTime()
+	if interactTime == nil then
+		self.speed = 0
+	elseif interactTime > 0 then
+		self.speed = 1 / interactTime
+	else
+		self.speed = math.huge
+	end
+end
+
+function ActionType.Interact:isLegal(entity)
+	Interact_cache(self, entity)
+	return self.distance ~= nil and self.distance < 1e-6 and self.speed > 0
+end
+
+ActionType.Interact.update = genericUpdate
+
+function ActionType.Interact:complete(entity)
+	if self:isLegal(entity) then
+		self.target:interact(entity)
 	end
 end
 

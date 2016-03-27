@@ -5,6 +5,7 @@
 local Area = require "Area"
 local Effect = require "Effect"
 local Entity = require "Entity"
+local Structure = require "Structure"
 
 -- World is the top-level game model class. It consists of a collection of
 -- interconnected Area objects and keeps track of the mapping between IDs and
@@ -27,6 +28,7 @@ function World.new()
 	return setmetatable({
 		areas = {},
 		entities = {},
+		structures = {},
 		nextIds = {},
 		effects = Effect.List.new {}
 	}, World.mt)
@@ -151,6 +153,45 @@ function World:newEntity(proto)
 	local entity = Entity.new(proto)
 	self:addEntity(entity)
 	return entity
+end
+
+-- Return an iterator over all (ID, Structure) associations in this World.
+function World:getStructures()
+	return pairs(self.structures)
+end
+
+-- Return the Structure with the given ID, or nil if there is no such
+-- structure.
+function World:getStructure(structureId)
+	return self.structures[structureId]
+end
+
+-- Add the given Structure to this World. Replaces any existing structure with
+-- the same ID.
+function World:addStructure(structure)
+	local id = structure:getId()
+	local old = self:getStructure(id)
+	if old ~= nil then
+		self:removeStructure(old)
+	end
+	self.structures[id] = structure
+end
+
+-- Remove the given Structure from this World.
+function World:removeStructure(structure)
+	local id = structure:getId()
+	if self:getStructure(id) == structure then
+		self.structures[id] = nil
+	end
+end
+
+-- Construct a new Structure from the given prototype and give it a unique ID.
+-- The structure is automatically added to this World.
+function World:newStructure(proto)
+	proto.id = self:nextId(self.structures)
+	local structure = Structure.new(proto)
+	self:addStructure(structure)
+	return structure
 end
 
 return World

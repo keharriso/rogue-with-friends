@@ -90,13 +90,12 @@ end
 
 EffectType.Start.observeEffect = observeEntity
 
--- A Progress Effect updates the progress and direction of an Action, and
--- completes the Action if the `progress` 1 or greater. Parameters:
+-- A Progress Effect updates the progress of an Action, and completes the
+-- Action if the `progress` 1 or greater. Parameters:
 -- {
 --   type = "Progress",
 --   entity = <Entity>,
---   progress = <number>,
---   direction = <string> or nil
+--   progress = <number>
 -- }
 EffectType.Progress = setmetatable({}, Effect.mt)
 
@@ -116,7 +115,6 @@ function EffectType.Progress:applyEffect(effects)
 			}
 		else
 			action:setProgress(progress)
-			action:setDirection(self.direction)
 		end
 	end
 end
@@ -215,6 +213,10 @@ function EffectType.Move:observeEffect(entity, perception)
 			if tileEntity ~= nil then
 				perception:addEntity(tileEntity)
 			end
+			local tileStructure = tile:getStructure()
+			if tileStructure ~= nil then
+				perception:addStructure(tileStructure)
+			end
 		end
 	end
 end
@@ -262,12 +264,12 @@ function EffectType.Kill:applyEffect(effects)
 	self.position = entity:getPosition()
 	entity:setHitPoints(0)
 	-- Remove the entity from from the area.
+	local world = entity:getWorld()
 	effects:apply {
 		type = "Move",
 		entity = entity,
 		area = nil
 	}
-	local world = entity:getWorld()
 	if world ~= nil then
 		world:removeEntity(entity)
 	end
