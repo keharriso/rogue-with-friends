@@ -11,4 +11,11 @@ Human = {
 	attackSpeed = 3
 };
 
+Monster = {
+	moveSpeed = {Ground = 2},
+	hitPoints = 3,
+	damage = 1,
+	attackSpeed = 2
+};
+
 }

@@ -113,6 +113,11 @@ function Client:getStructure(id)
 	return self.structures[id]
 end
 
+-- Return whether or not the game has been won.
+function Client:hasWon()
+	return self.won and true or false
+end
+
 -- Get the state of the underlying connection, returning true for open and
 -- false for closed.
 function Client:isConnected()
@@ -178,11 +183,15 @@ end
 
 -- [private] Handle a perception message.
 function handle.Perception(client, msg)
-	if msg.area ~= client:getAreaId() then
+	if msg.area ~= client:getAreaId() or msg.death then
 		-- We are viewing a different area than before, reset the
 		-- local views.
 		client.areaId = msg.area
 		resetView(client)
+	end
+
+	if msg.win then
+		client.won = true
 	end
 
 	-- Keep track of which entities need to change their positions.

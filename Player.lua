@@ -100,6 +100,7 @@ function Player:sendPerception(perception)
 		msg.structures = structures
 	end
 	msg.death = perception:isDeath() and true or nil
+	msg.win = perception:isWin() and true or nil
 	sendMessage(self, msg)
 end
 

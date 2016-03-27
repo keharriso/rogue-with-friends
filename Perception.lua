@@ -16,7 +16,8 @@ function Perception.new()
 		tiles = {},
 		entities = {},
 		structures = {},
-		death = false
+		death = false,
+		win = false
 	}, Perception.mt)
 end
 
@@ -80,9 +81,19 @@ function Perception:setDeath(death)
 	self.death = death
 end
 
+-- Return whether or not this Perception carries a win event.
+function Perception:isWin()
+	return self.win
+end
+
+-- Set whether or not this Perception carries a win event.
+function Perception:setWin(win)
+	self.win = win
+end
+
 -- Return true if this Perception has no observations, and false otherwise.
 function Perception:isEmpty()
-	return not self.death
+	return not self.death and not self.win
 			and next(self.tiles) == nil
 			and next(self.entities) == nil
 			and next(self.structures) == nil

@@ -112,7 +112,7 @@ local Image = Data.new {
 
 -- [private] Draw a health bar at the specified coordinates.
 local function drawHealthBar(ui, health, sx, sy)
-	love.graphics.push("all")
+	love.graphics.push "all"
 	local width, height = 4, round(ui:getTileSize() / 2)
 	local redY, redH = -(height / 2), round((1 - health) * height)
 	love.graphics.setColor(255, 0, 0)
@@ -162,6 +162,19 @@ local function drawTile(ui, tile, sx, sy)
 	end
 end
 
+-- [private] Draw a win message.
+local winFontSize = 128
+local winFont = love.graphics.newFont(winFontSize)
+local function drawWin(ui)
+	local x, y, width, height = ui:getBounds():unpack()
+	y = y + (height - winFontSize) / 2
+	love.graphics.push "all"
+	love.graphics.setFont(winFont)
+	love.graphics.setColor(255, 0, 0)
+	love.graphics.printf("You win!", x, y, width, "center")
+	love.graphics.pop()
+end
+
 -- Render the local view to the game screen.
 function UI:draw()
 	local bounds = self:getBounds()
@@ -179,6 +192,9 @@ function UI:draw()
 				drawTile(self, tile, tile2screen(self, tx, ty))
 			end
 		end
+	end
+	if self.client:hasWon() then
+		drawWin(self)
 	end
 end
 

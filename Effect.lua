@@ -222,7 +222,7 @@ function EffectType.Move:observeEffect(entity, perception)
 end
 
 -- A Damage Effect incurs damage to an Entity, causing a Kill effect if hit
--- points drop to 0.
+-- points drop to 0. Parameters:
 -- {
 --   type = "Damage",
 --   entity = <Entity>,
@@ -249,7 +249,7 @@ end
 
 EffectType.Damage.observeEffect = observeEntity
 
--- A Kill Effect handles Entity death.
+-- A Kill Effect handles Entity death. Parameters:
 -- {
 --   type = "Kill",
 --   entity = <Entity>
@@ -280,6 +280,18 @@ function EffectType.Kill:observeEffect(entity, perception)
 	if entity == self.entity then
 		perception:setDeath(true)
 	end
+end
+
+-- A Win Effect wins the game. Parameters:
+-- {
+--   type = "Win"
+-- }
+EffectType.Win = setmetatable({}, Effect.mt)
+
+EffectType.Win.mt = {__index = EffectType.Win}
+
+function EffectType.Win:observeEffect(entity, perception)
+	perception:setWin(true)
 end
 
 -- A List of Effects. Provides the Effect.List:add and Effect.List:apply
