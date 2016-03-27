@@ -30,6 +30,12 @@ local function Portal_interact(self, entity)
 			area = area,
 			position = pos
 		}
+		entity:setIntent(nil)
+		world:apply {
+			type = "Start",
+			entity = entity,
+			action = nil
+		}
 	end
 end
 
