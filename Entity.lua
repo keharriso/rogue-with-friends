@@ -17,8 +17,10 @@ Entity.mt = {__index = Entity}
 -- {
 --   id = <number>,
 --   type = <Entity.Type> or <string>,
+--   faction = <string> or nil,
 --   area = <Area> or nil,
 --   position = <Position> or nil,
+--   ai = <AI> or nil,
 --   intent = <Intent> or nil,
 --   action = <Action> or nil,
 --   hitPoints = <number> or nil
@@ -56,6 +58,11 @@ end
 -- Perform one tick worth of updates to this Entity in the context of the
 -- given World object, advancing by `dt` seconds.
 function Entity:update(dt)
+	local ai = self:getAI()
+	if ai ~= nil then
+		ai:update(self, dt)
+		self:setIntent(ai:generateIntent(self))
+	end
 	local action = self:getAction() or generateAction(self)
 	while action ~= nil and dt > 0 do
 		dt = dt - action:update(self, dt)
@@ -107,6 +114,26 @@ end
 -- Set the Position of this Entity.
 function Entity:setPosition(position)
 	self.position = position
+end
+
+-- Return the faction of this Entity as a string.
+function Entity:getFaction()
+	return self.faction
+end
+
+-- Set the faction of this Entity as a string.
+function Entity:setFaction(faction)
+	self.faction = faction
+end
+
+-- Return the AI of this Entity.
+function Entity:getAI()
+	return self.ai
+end
+
+-- Set the AI of this Entity.
+function Entity:setAI(ai)
+	self.ai = ai
 end
 
 -- Return the current Intent of this Entity.

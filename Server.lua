@@ -6,6 +6,7 @@ require "love.timer"
 
 local socket = require "socket"
 
+local AI = require "AI"
 local Connection = require "Connection"
 local Effect = require "Effect"
 local Intent = require "Intent"
@@ -91,7 +92,10 @@ end
 
 -- [private] Assign a player to an entity.
 local function assignEntity(world, player)
-	local entity = world:newEntity {type = "Human"}
+	local entity = world:newEntity {
+		type = "Human",
+		faction = "Players"
+	}
 	player:setEntity(entity)
 	player:sendIdentity(entity:getId())
 	-- Place the entity on some free tile.
@@ -302,7 +306,11 @@ if command == "host" then
 		pos:pack(x, y); area:getTile(pos):setType(tileType)
 	end
 	local function addMonster(area, x, y)
-		local monster = world:newEntity {type = "Monster"}
+		local monster = world:newEntity {
+			type = "Monster",
+			faction = "Monsters",
+			ai = AI.new {type = "Aggressive"}
+		}
 		world:apply {
 			type = "Move",
 			entity = monster,
