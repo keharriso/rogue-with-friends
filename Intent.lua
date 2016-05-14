@@ -3,6 +3,8 @@
 -- Released under the GNU AGPLv3 or later. See README.md for info.
 
 local Action = require "Action"
+local Astar = require "Astar"
+local Position = require "Position"
 
 -- An Intent represents a medium-term goal that generates short-term Actions
 -- in pursuit of that goal. When an Entity has an Intent, but no Action, it
@@ -61,13 +63,29 @@ end
 function IntentType.Move:generateAction(entity)
 	local current = entity:getPosition()
 	local target = self:getTarget()
+	local area = entity:getArea()
+	local usePathFinding = true	--enable or disable A* pathfinding
+	
 	if current ~= nil and target ~= nil then
-		local dir = current:getDirection(target)
+		local dir = nil
+		local path = nil
+
+		if usePathFinding then
+			path = Astar.path (current, target, area, false)
+		end
+
+		if path ~= nil and #path > 1 and usePathFinding then
+			dir = current:getDirection(path[2])
+		else
+			dir = current:getDirection(target)
+		end
+		
 		return Action.new {
 			type = "Move",
 			direction = dir
 		}
 	end
 end
+
 
 return Intent
