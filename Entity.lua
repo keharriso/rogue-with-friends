@@ -17,16 +17,22 @@ Entity.mt = {__index = Entity}
 -- {
 --   id = <number>,
 --   type = <Entity.Type> or <string>,
+--   faction = <string> or nil,
 --   area = <Area> or nil,
 --   position = <Position> or nil,
+--   ai = <AI> or nil,
 --   intent = <Intent> or nil,
---   action = <Action> or nil
+--   action = <Action> or nil,
+--   hitPoints = <number> or nil
 -- }
 --
 -- `proto` is consumed and should not be reused or modified.
 function Entity.new(proto)
 	if type(proto.type) == "string" then
 		proto.type = Entity.Type:require(proto.type)
+	end
+	if proto.hitPoints == nil then
+		proto.hitPoints = proto.type:getHitPoints()
 	end
 	return setmetatable(proto, Entity.mt)
 end
@@ -52,6 +58,11 @@ end
 -- Perform one tick worth of updates to this Entity in the context of the
 -- given World object, advancing by `dt` seconds.
 function Entity:update(dt)
+	local ai = self:getAI()
+	if ai ~= nil then
+		ai:update(self, dt)
+		self:setIntent(ai:generateIntent(self))
+	end
 	local action = self:getAction() or generateAction(self)
 	while action ~= nil and dt > 0 do
 		dt = dt - action:update(self, dt)
@@ -105,6 +116,26 @@ function Entity:setPosition(position)
 	self.position = position
 end
 
+-- Return the faction of this Entity as a string.
+function Entity:getFaction()
+	return self.faction
+end
+
+-- Set the faction of this Entity as a string.
+function Entity:setFaction(faction)
+	self.faction = faction
+end
+
+-- Return the AI of this Entity.
+function Entity:getAI()
+	return self.ai
+end
+
+-- Set the AI of this Entity.
+function Entity:setAI(ai)
+	self.ai = ai
+end
+
 -- Return the current Intent of this Entity.
 function Entity:getIntent()
 	return self.intent
@@ -125,12 +156,40 @@ function Entity:setAction(action)
 	self.action = action
 end
 
+-- Return the current hit points of this Entity.
+function Entity:getHitPoints()
+	return self.hitPoints
+end
+
+-- Set the current hit points of this Entity.
+function Entity:setHitPoints(hitPoints)
+	self.hitPoints = hitPoints
+end
+
+-- Return the best (movement type, speed) pair for moving this Entity to the
+-- given Tile.
+function Entity:getMovement(tile)
+	local bestType, bestSpeed = nil, 0
+	if tile ~= nil and not tile:isOccupied() then
+		for moveType,baseSpeed in self:getType():getMoveSpeeds() do
+			local speed = baseSpeed * tile:getMoveSpeed(moveType)
+			if speed > bestSpeed then
+				bestType, bestSpeed = moveType, speed
+			end
+		end
+	end
+	return bestType, bestSpeed
+end
+
 -- A Data type representing the type of an Entity.
 Entity.Type = Data.new {
 	loadAll = function (self)
 		local entityTypes = love.filesystem.load "data/entities.lua"()
 		for name,entityType in pairs(entityTypes) do
 			entityType.name = name
+			if entityType.moveSpeed == nil then
+				entityType.moveSpeed = {}
+			end
 			setmetatable(entityType, Entity.Type.mt)
 		end
 		return entityTypes
@@ -142,6 +201,32 @@ Entity.Type.mt = {__index = Entity.Type}
 -- Return the name of this Entity.Type.
 function Entity.Type:getName()
 	return self.name
+end
+
+-- Return an iterator over all (movement type, base speed) associations for
+-- this Entity.Type.
+function Entity.Type:getMoveSpeeds()
+	return pairs(self.moveSpeed)
+end
+
+-- Return the base speed of this Entity.Type for the given movement type.
+function Entity.Type:getMoveSpeed(moveType)
+	return self.moveSpeed[moveType] or 0
+end
+
+-- Return the base hit points for this Entity.Type.
+function Entity.Type:getHitPoints()
+	return self.hitPoints
+end
+
+-- Return the base attack damage for this Entity.Type.
+function Entity.Type:getDamage()
+	return self.damage
+end
+
+-- Return the base attack speed for this Entity.Type.
+function Entity.Type:getAttackSpeed()
+	return self.attackSpeed
 end
 
 return Entity

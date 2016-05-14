@@ -90,13 +90,12 @@ end
 
 EffectType.Start.observeEffect = observeEntity
 
--- A Progress Effect updates the progress and direction of an Action, and
--- completes the Action if the `progress` 1 or greater. Parameters:
+-- A Progress Effect updates the progress of an Action, and completes the
+-- Action if the `progress` 1 or greater. Parameters:
 -- {
 --   type = "Progress",
 --   entity = <Entity>,
---   progress = <number>,
---   direction = <string> or nil
+--   progress = <number>
 -- }
 EffectType.Progress = setmetatable({}, Effect.mt)
 
@@ -116,7 +115,6 @@ function EffectType.Progress:applyEffect(effects)
 			}
 		else
 			action:setProgress(progress)
-			action:setDirection(self.direction)
 		end
 	end
 end
@@ -143,7 +141,7 @@ function EffectType.Complete:applyEffect(effects)
 	end
 end
 
-EffectType.Start.observeEffect = observeEntity
+EffectType.Complete.observeEffect = observeEntity
 
 -- A Move effect updates the position and area of an entity. Parameters:
 -- {
@@ -190,9 +188,9 @@ function EffectType.Move:observeEffect(entity, perception)
 	local oldArea, newArea = self.oldArea, self.area
 	local oldPos, newPos = self.oldPosition, self.position
 	local areaChanged = oldArea ~= newArea
+	local area = entity:getArea()
 
 	-- If you're in the same area, you see it.
-	local area = entity:getArea()
 	if area ~= nil then
 		if area == oldArea and oldPos ~= nil then
 			perception:addTileAt(oldPos)
@@ -207,16 +205,93 @@ function EffectType.Move:observeEffect(entity, perception)
 
 	-- In the special case that an entity is observing its own
 	-- area transition, produce a more complete perception.
-	if entity == self.entity and newArea ~= oldArea
-			and newArea ~= nil then
+	if entity == self.entity and area == newArea
+			and newArea ~= oldArea and newArea ~= nil then
 		for pos,tile in newArea:getTiles() do
 			perception:addTileAt(Position.decode(pos))
 			local tileEntity = tile:getEntity()
 			if tileEntity ~= nil then
 				perception:addEntity(tileEntity)
 			end
+			local tileStructure = tile:getStructure()
+			if tileStructure ~= nil then
+				perception:addStructure(tileStructure)
+			end
 		end
 	end
+end
+
+-- A Damage Effect incurs damage to an Entity, causing a Kill effect if hit
+-- points drop to 0. Parameters:
+-- {
+--   type = "Damage",
+--   entity = <Entity>,
+--   damage = <number>
+-- }
+EffectType.Damage = setmetatable({}, Effect.mt)
+
+EffectType.Damage.mt = {__index = EffectType.Damage}
+
+function EffectType.Damage:applyEffect(effects)
+	local entity = self.entity
+	self.area = entity:getArea()
+	self.position = entity:getPosition()
+	local hitPoints = entity:getHitPoints() - self.damage
+	if hitPoints < 1e-6 then
+		effects:apply {
+			type = "Kill",
+			entity = entity
+		}
+	else
+		entity:setHitPoints(hitPoints)
+	end
+end
+
+EffectType.Damage.observeEffect = observeEntity
+
+-- A Kill Effect handles Entity death. Parameters:
+-- {
+--   type = "Kill",
+--   entity = <Entity>
+-- }
+EffectType.Kill = setmetatable({}, Effect.mt)
+
+EffectType.Kill.mt = {__index = EffectType.Kill}
+
+function EffectType.Kill:applyEffect(effects)
+	local entity = self.entity
+	self.area = entity:getArea()
+	self.position = entity:getPosition()
+	entity:setHitPoints(0)
+	-- Remove the entity from from the area.
+	local world = entity:getWorld()
+	effects:apply {
+		type = "Move",
+		entity = entity,
+		area = nil
+	}
+	if world ~= nil then
+		world:removeEntity(entity)
+	end
+end
+
+function EffectType.Kill:observeEffect(entity, perception)
+	observeEntity(self, entity, perception)
+	if entity == self.entity then
+		perception:setDeath(true)
+	end
+end
+
+-- A Win Effect wins the game. Parameters:
+-- {
+--   type = "Win"
+-- }
+EffectType.Win = setmetatable({}, Effect.mt)
+
+EffectType.Win.mt = {__index = EffectType.Win}
+
+function EffectType.Win:observeEffect(entity, perception)
+	perception:setWin(true)
 end
 
 -- A List of Effects. Provides the Effect.List:add and Effect.List:apply

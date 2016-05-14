@@ -4,6 +4,18 @@
 
 return {
 
-Human = {};
+Human = {
+	moveSpeed = {Ground = 3},
+	hitPoints = 10,
+	damage = 1,
+	attackSpeed = 3
+};
+
+Monster = {
+	moveSpeed = {Ground = 2},
+	hitPoints = 3,
+	damage = 1,
+	attackSpeed = 2
+};
 
 }

@@ -26,6 +26,7 @@ Client.mt = {__index = Client}
 local function resetView(client)
 	client.tiles = {}
 	client.entities = {}
+	client.structures = {}
 end
 
 -- Construct a new client from the given prototype. In particular, `proto`
@@ -80,11 +81,14 @@ end
 --   type = <string> or nil,
 --   position = <Position> or nil,
 --   action = <action-view> or nil,
+--   hitPoints = <number>,
+--   maxHitPoints = <number>
 -- }
 --
 -- The <action-view>, if there is one, has the following structure:
 -- {
 --   type = <string>,
+--   subtype = <string> or nil,
 --   direction = <string> or nil,
 --   progress = <number>
 -- }
@@ -93,6 +97,25 @@ end
 -- should not be modified.
 function Client:getEntity(id)
 	return self.entities[id]
+end
+
+-- Return the view that this Client has of the structure with the given id (or
+-- nil if there is no such view). The returned view has the following
+-- structure:
+-- {
+--   id = <number>,
+--   type = <string> or nil
+-- }
+--
+-- The returned view is valid until the next call to Client:update, and it
+-- should not be modified.
+function Client:getStructure(id)
+	return self.structures[id]
+end
+
+-- Return whether or not the game has been won.
+function Client:hasWon()
+	return self.won and true or false
 end
 
 -- Get the state of the underlying connection, returning true for open and
@@ -124,6 +147,16 @@ function Client:sendMoveIntent(target)
 	sendIntent(self, {type = "Move", target = {target:unpack()}})
 end
 
+-- Send an intent to attack a given Entity.
+function Client:sendAttackIntent(targetId)
+	sendIntent(self, {type = "Attack", target = targetId})
+end
+
+-- Send an intent to interact with a given structure.
+function Client:sendInteractIntent(targetId)
+	sendIntent(self, {type = "Interact", target = targetId})
+end
+
 -- [private] Incoming message handling table.
 local handle = {}
 
@@ -150,11 +183,15 @@ end
 
 -- [private] Handle a perception message.
 function handle.Perception(client, msg)
-	if msg.area ~= client:getAreaId() then
+	if msg.area ~= client:getAreaId() or msg.death then
 		-- We are viewing a different area than before, reset the
 		-- local views.
 		client.areaId = msg.area
 		resetView(client)
+	end
+
+	if msg.win then
+		client.won = true
 	end
 
 	-- Keep track of which entities need to change their positions.
@@ -201,6 +238,13 @@ function handle.Perception(client, msg)
 
 	for entityId,_ in pairs(clearPos) do
 		client.entities[entityId].position = nil
+	end
+
+	-- Handle structure perceptions.
+	if msg.structures ~= nil then
+		for _,structure in ipairs(msg.structures) do
+			client.structures[structure.id] = structure
+		end
 	end
 end
 

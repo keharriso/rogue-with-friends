@@ -14,8 +14,9 @@ Tile.mt = {__index = Tile}
 -- Construct a new Tile from the given prototype. `proto` should provide the
 -- following fields:
 -- {
---   type = <Tile.Type> or <string>
---   entity = <Entity or nil>
+--   type = <Tile.Type> or <string>,
+--   entity = <Entity or nil>,
+--   structure = <Structure or nil>
 -- }
 --
 -- `proto` is consumed and should not be reused or modified.
@@ -40,6 +41,12 @@ function Tile:setType(tileType)
 	end
 end
 
+-- Return true if there is an Entity or Structure that occupies the space on
+-- this Tile, and false otherwise.
+function Tile:isOccupied()
+	return self:getEntity() ~= nil
+end
+
 -- Return the Entity on this Tile (or nil if there is no such Entity).
 function Tile:getEntity()
 	return self.entity
@@ -50,12 +57,30 @@ function Tile:setEntity(entity)
 	self.entity = entity
 end
 
+-- Return the Structure on this Tile (or nil if there is no Structure).
+function Tile:getStructure()
+	return self.structure
+end
+
+-- Set the Structure on this Tile.
+function Tile:setStructure(structure)
+	self.structure = structure
+end
+
+-- Return the speed factor of this Tile for the given movement type.
+function Tile:getMoveSpeed(moveType)
+	return self:getType():getMoveSpeed(moveType)
+end
+
 -- A Data type representing the type of a Tile.
 Tile.Type = Data.new {
 	loadAll = function (self)
 		local tileTypes = love.filesystem.load "data/tiles.lua"()
 		for name,tileType in pairs(tileTypes) do
 			tileType.name = name
+			if tileType.moveSpeed == nil then
+				tileType.moveSpeed = {}
+			end
 			setmetatable(tileType, Tile.Type.mt)
 		end
 		return tileTypes
@@ -69,9 +94,15 @@ function Tile.Type:getName()
 	return self.name
 end
 
--- Return true if this Tile type prevents movement, and false otherwise.
-function Tile.Type:isSolid()
-	return self.solid
+-- Return an iterator over all (movement type, speed factor) associations for
+-- this Tile.Type.
+function Tile.Type:getMoveSpeeds()
+	return pairs(self.moveSpeed)
+end
+
+-- Return the speed factor of this Tile.Type for the given movement type.
+function Tile.Type:getMoveSpeed(moveType)
+	return self.moveSpeed[moveType] or 0
 end
 
 return Tile
