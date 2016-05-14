@@ -2,6 +2,8 @@
 -- ---------------------------------------------------------------
 -- Released under the GNU AGPLv3 or later. See README.md for info.
 
+local Position = require "Position"
+
 -- An Area associates Tiles with Positions.
 
 local Area = {}
@@ -34,6 +36,17 @@ end
 -- Return an iterator over all (Position, Tile) associations in this Area.
 function Area:getTiles()
 	return pairs(self.tiles)
+end
+
+--return a list of all positions in this area 
+function Area:getWalkablePositions()
+	local positions = {}
+	for pos,tile in self:getTiles() do
+		if not tile.type:isSolid() then
+			table.insert(positions, pos)
+		end
+	end
+	return positions
 end
 
 -- Return the Tile associated with the given Position, or nil if there is no

@@ -90,6 +90,7 @@ local function Move_cache(self, entity)
 	local area = entity:getArea()
 	local pos = entity:getPosition()
 	local tile = area and pos and area:getTile(pos)
+	local Position = require "Position"
 	local targetPos = pos and dir and pos:getNeighbor(dir)
 	local targetTile = area and targetPos and area:getTile(targetPos)
 	self.area = area
