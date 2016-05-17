@@ -87,8 +87,6 @@ function IntentType.Move:generateAction(entity)
 	end
 end
 
-<<<<<<< HEAD
-=======
 -- An Attack intent tries to move an Entity within range of a target Entity
 -- and then generate Attack actions until the target is deceased. Parameters:
 -- {
@@ -184,6 +182,5 @@ function IntentType.Interact:generateAction(entity)
 		end
 	end
 end
->>>>>>> refs/remotes/origin/develop
 
 return Intent

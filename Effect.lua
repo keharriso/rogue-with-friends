@@ -294,6 +294,37 @@ function EffectType.Win:observeEffect(entity, perception)
 	perception:setWin(true)
 end
 
+-- A RemovePowerUp Effect handles Structure removal. Parameters:
+-- {
+--   type = "RemovePowerUp",
+--   entity = <Entity>,
+--   structure = <Structure>
+-- }
+EffectType.RemovePowerUp = setmetatable({}, Effect.mt)
+
+EffectType.RemovePowerUp.mt = {__index = EffectType.RemovePowerUp}
+
+function EffectType.RemovePowerUp:applyEffect(effects)
+	print("HERE")
+	local structure = self.structure
+	self.area = structure:getArea()
+	self.position = structure:getPosition()
+	-- Remove the structure from from the area.
+	local world = structure:getWorld()
+	if world ~= nil then
+		world:removeStructure(structure)
+		local tile = self.area:getTile(self.position)
+		if tile ~= nil then
+			tile:setStructure(nil)
+		end
+	end
+end
+
+function EffectType.RemovePowerUp:observeEffect(entity, perception)
+	perception:setPowerUp(true)
+end
+
+
 -- A List of Effects. Provides the Effect.List:add and Effect.List:apply
 -- methods for easy addition and application.
 Effect.List = {}

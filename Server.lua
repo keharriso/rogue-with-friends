@@ -318,12 +318,29 @@ if command == "host" then
 			position = Position.new {x, y}
 		}
 	end
+
+	local function addBoss(area, x, y)
+		local boss = world:newEntity {
+			type = "Boss",
+			faction = "Monsters",
+			ai = AI.new {type = "Aggressive"}
+		}
+		world:apply {
+			type = "Move",
+			entity = boss,
+			area = area,
+			position = Position.new {x, y}
+		}
+	end
+
 	local function addStructure(area, x, y, structure)
 		structure = area:getWorld():newStructure(structure)
 		structure:setArea(area)
 		structure:setPosition(Position.new {x, y})
 		pos:pack(x, y); area:getTile(pos):setStructure(structure)
 	end
+
+
 	local area1 = newArea(12, 12)
 	setTile(area1, 4, 4, "Wall")
 	setTile(area1, 9, 4, "Wall")
@@ -331,8 +348,11 @@ if command == "host" then
 	setTile(area1, 9, 9, "Wall")
 	addMonster(area1, 6, 6)
 	local area2 = newArea(8, 8)
-	addMonster(area2, 4, 4)
 	addStructure(area2, 6, 3, {type = "MacGuffin"})
+	addStructure(area1, 6, 6, {type = "Damage"})
+	addStructure(area1, 6, 7, {type = "AttackSpeed"})
+	addStructure(area1, 6, 8, {type = "MaxHitPoints"})
+
 	addStructure(area1, 7, 7, {
 		type = "StairsDown",
 		targetArea = area2,
@@ -343,6 +363,8 @@ if command == "host" then
 		targetArea = area1,
 		targetPosition = Position.new {7, 7}
 	})
+	addBoss(area2, 4, 4)
+
 	server:setWorld(world)
 
 	-- Bind to port if specified.

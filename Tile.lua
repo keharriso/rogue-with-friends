@@ -105,4 +105,9 @@ function Tile.Type:getMoveSpeed(moveType)
 	return self.moveSpeed[moveType] or 0
 end
 
+-- Return true if this Tile type prevents movement, and false otherwise.
+function Tile.Type:isSolid()
+	return self.solid
+end
+
 return Tile

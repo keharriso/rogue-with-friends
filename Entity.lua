@@ -166,6 +166,52 @@ function Entity:setHitPoints(hitPoints)
 	self.hitPoints = hitPoints
 end
 
+-- Return the base hit points for this Entity.
+function Entity:getMaxHitPoints(hitPoints)
+	if self.maxHitPoints == nil then
+		self.maxHitPoints = self:getType():getHitPoints()
+		return self.maxHitPoints
+	else
+		return self.maxHitPoints
+	end
+end
+
+-- Set the base hit points for this Entity.
+function Entity:setMaxHitPoints(maxHitPoints)
+	self.maxHitPoints = maxHitPoints
+end
+
+-- Return the base attack damage for this Entity.
+function Entity:getDamage()
+	if self.damage == nil then
+		self.damage = self:getType():getDamage()
+		return self.damage
+	else
+		return self.damage
+	end
+end
+
+-- Set the base attack damage for this Entity.
+function Entity:setDamage(damage)
+	self.damage = damage
+end
+
+-- Return the base attack speed for this Entity.
+function Entity:getAttackSpeed()
+	if self.attackSpeed == nil then
+		self.attackSpeed = self:getType():getAttackSpeed()
+		return self.attackSpeed
+	else
+		return self.attackSpeed
+	end
+end
+
+-- Set the base attack speed for this Entity.
+function Entity:setAttackSpeed(attackSpeed)
+	self.attackSpeed = attackSpeed
+end
+
+
 -- Return the best (movement type, speed) pair for moving this Entity to the
 -- given Tile.
 function Entity:getMovement(tile)
@@ -219,14 +265,30 @@ function Entity.Type:getHitPoints()
 	return self.hitPoints
 end
 
+-- Set the base hit points for this Entity.Type.
+function Entity.Type:setHitPoints(hitPoints)
+	self.hitPoints = hitPoints
+end
+
 -- Return the base attack damage for this Entity.Type.
 function Entity.Type:getDamage()
 	return self.damage
 end
 
+-- Set the base attack damage for this Entity.Type.
+function Entity.Type:setDamage(damage)
+	print("DAMAGEEE", damage)
+	self.damage = damage
+end
+
 -- Return the base attack speed for this Entity.Type.
 function Entity.Type:getAttackSpeed()
 	return self.attackSpeed
+end
+
+-- Set the base attack speed for this Entity.Type.
+function Entity.Type:setAttackSpeed(attackSpeed)
+	self.attackSpeed = attackSpeed
 end
 
 return Entity

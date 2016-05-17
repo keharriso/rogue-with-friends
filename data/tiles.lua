@@ -5,9 +5,12 @@
 return {
 
 Floor = {
-	moveSpeed = {Ground = 1}
+	moveSpeed = {Ground = 1},
+	solid = false
 };
 
-Wall = {};
+Wall = {
+	solid = true
+};
 
 }

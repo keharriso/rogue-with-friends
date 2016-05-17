@@ -8,14 +8,20 @@ Human = {
 	moveSpeed = {Ground = 3},
 	hitPoints = 10,
 	damage = 1,
-	attackSpeed = 3
+	attackSpeed = 4
 };
 
 Monster = {
 	moveSpeed = {Ground = 2},
-	hitPoints = 3,
+	hitPoints = 5,
 	damage = 1,
 	attackSpeed = 2
 };
 
+Boss = {
+	moveSpeed = {Ground = 1},
+	hitPoints = 10,
+	damage = 1,
+	attackSpeed = 1
+};
 }

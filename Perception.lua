@@ -81,6 +81,11 @@ function Perception:setDeath(death)
 	self.death = death
 end
 
+-- Set whether or not the subject of this Perception is standing on a Power Up.
+function Perception:setPowerUp(powerUp)
+	self.powerUp = powerUp
+end
+
 -- Return whether or not this Perception carries a win event.
 function Perception:isWin()
 	return self.win
@@ -93,7 +98,7 @@ end
 
 -- Return true if this Perception has no observations, and false otherwise.
 function Perception:isEmpty()
-	return not self.death and not self.win
+	return not self.death and not self.win and not self.powerUp
 			and next(self.tiles) == nil
 			and next(self.entities) == nil
 			and next(self.structures) == nil

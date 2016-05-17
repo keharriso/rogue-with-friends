@@ -59,6 +59,60 @@ MacGuffin = {
 			type = "Win"
 		}
 	end
+};
+
+Damage = {
+	interactTime = 1,
+	interact = function (self, entity)
+		local area, pos = entity:getArea(), entity:getPosition()
+		local tile = area:getTile(pos)
+		local oldDamage = entity:getDamage()
+		print("oldDamage", oldDamage)
+		entity:setDamage(oldDamage + 1)
+		print("New Damage", entity:getDamage())
+		entity:getWorld():apply {
+				type = "RemovePowerUp",
+				entity = entity,
+				structure = self
+			}
+	end
+
+};
+
+AttackSpeed = {
+	interactTime = 1,
+	interact = function (self, entity)
+		local area, pos = entity:getArea(), entity:getPosition()
+		local tile = area:getTile(pos)
+		local oldAttackSpeed = entity:getAttackSpeed()
+		print("Old attack speed", oldAttackSpeed)
+		entity:setAttackSpeed(oldAttackSpeed + 1)
+		print("New Attack Speed", entity:getAttackSpeed())
+		entity:getWorld():apply {
+				type = "RemovePowerUp",
+				entity = entity,
+				structure = self
+			}
+	end
+
+};
+
+MaxHitPoints = {
+	interactTime = 1,
+	interact = function (self, entity)
+		local area, pos = entity:getArea(), entity:getPosition()
+		local tile = area:getTile(pos)
+		local oldMaxHitPoints = entity:getMaxHitPoints()
+		print("Old MaxHitPoints", oldMaxHitPoints)
+		entity:setMaxHitPoints(oldMaxHitPoints + 1)
+		print("New Damage", entity:getMaxHitPoints())
+		entity:getWorld():apply {
+				type = "RemovePowerUp",
+				entity = entity,
+				structure = self
+			}
+	end
+
 }
 
 }

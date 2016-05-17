@@ -82,7 +82,7 @@ function Player:sendPerception(perception)
 			id = entity:getId(),
 			type = entity:getType():getName(),
 			hitPoints = entity:getHitPoints(),
-			maxHitPoints = entity:getType():getHitPoints(),
+			maxHitPoints = entity:getMaxHitPoints(),
 			action = action and {
 				type = action:getType(),
 				subtype = action:getSubtype(),
