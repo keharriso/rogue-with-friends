@@ -14,6 +14,9 @@ local Perception = require "Perception"
 local Player = require "Player"
 local Position = require "Position"
 
+--package.path = package.path .. ";./astray/astray/?.lua"
+local astray = require('astray/astray')
+
 -- A Server is responsible for providing a central simulation of the game
 -- world. It interacts with players, both local and remote, by sending and
 -- receiving messages.
@@ -341,33 +344,123 @@ if command == "host" then
 	end
 
 
-	local area1 = newArea(12, 12)
-	setTile(area1, 4, 4, "Wall")
-	setTile(area1, 9, 4, "Wall")
-	setTile(area1, 4, 9, "Wall")
-	setTile(area1, 9, 9, "Wall")
-	--addMonster(area1, 6, 6)
-	local area2 = newArea(8, 8)
-	addStructure(area2, 6, 3, {type = "MacGuffin"})
-	addStructure(area1, 6, 6, {type = "Damage"})
-	addStructure(area1, 6, 7, {type = "AttackSpeed"})
-	addStructure(area1, 6, 8, {type = "MaxHitPoints"})
+-- 	local area1 = newArea(12, 12)
+-- 	setTile(area1, 4, 4, "Wall")
+-- 	setTile(area1, 9, 4, "Wall")
+-- 	setTile(area1, 4, 9, "Wall")
+-- 	setTile(area1, 9, 9, "Wall")
+-- 	addMonster(area1, 6, 6)
+-- 	local area2 = newArea(8, 8)
+-- 	addStructure(area2, 6, 3, {type = "MacGuffin"})
+-- 	addStructure(area1, 6, 6, {type = "Damage"})
+-- 	addStructure(area1, 6, 7, {type = "AttackSpeed"})
+-- 	addStructure(area1, 6, 8, {type = "MaxHitPoints"})
+-- 
+-- 	addStructure(area1, 7, 7, {
+-- 		type = "StairsDown",
+-- 		targetArea = area2,
+-- 		targetPosition = Position.new {5, 5}
+-- 	})
+-- 	addStructure(area2, 5, 5, {
+-- 		type = "StairsUp",
+-- 		targetArea = area1,
+-- 		targetPosition = Position.new {7, 7}
+-- 	})
+-- 	addBoss(area2, 4, 4)
+--	server:setWorld(world)
+	
+	local function roomScore(room)
+		local x = room.bounds["X"]
+		local y = room.bounds["Y"]
+		return (x + y)
+	end
+	local function placeEntity(room)
+		local minX = room.bounds["X"] * 2 + 1
+		local minY = room.bounds["Y"] * 2 + 1
+		local maxX = (room.bounds["X"] + room.bounds["Width"]) * 2 - 1
+		local maxY = (room.bounds["Y"] + room.bounds["Height"]) * 2 - 1
+		local x = math.random(minX + 1, maxX - 1)
+		local y = math.random(minY + 1, maxY - 1)
+		return {x, y}
+	end
 
-	addStructure(area1, 7, 7, {
-		type = "StairsDown",
-		targetArea = area2,
-		targetPosition = Position.new {5, 5}
-	})
-
-	addStructure(area2, 5, 5, {
-		type = "StairsUp",
-		targetArea = area1,
-		targetPosition = Position.new {7, 7}
-	})
-	addBoss(area1, 10, 2)
-	addBoss(area2, 6, 6)
-
-
+	local monsterChance = 25
+	local powerupChance = 10
+	local numAreas = 5
+	local areas = {}
+	local stairs = {}
+	local players = {}
+	for i=1,numAreas do
+		local areaW = 25
+		local areaH = 25
+		local symbols = {Wall='#', Empty=' ', DoorN=' ', DoorS=' ', DoorE=' ', DoorW=' '}
+		local generator = astray.Astray:new(areaW, areaH, 30, 70, 80, astray.RoomGenerator:new(8, 3, 5, 3, 5) )
+		local area = newArea(2*areaW + 1, 2*areaH + 1)
+		local dungeon = generator:GenerateDungeon()
+		generator:GenerateSparsifyMaze(dungeon)
+		generator:GenerateRemoveDeadEnds(dungeon)
+		generator:GeneratePlaceRooms(dungeon)
+		generator:GeneratePlaceDoors(dungeon)
+		local tiles = generator:CellToTiles(dungeon, symbols)
+		local lowest = nil
+		local highest = nil
+		for i=1,#dungeon.rooms do
+			local room = dungeon.rooms[i]
+			local score = roomScore(room)
+			if lowest == nil or score < roomScore(lowest) then
+				lowest = room
+			end
+			if highest == nil or score > roomScore(highest) then
+				highest = room
+			end
+			if math.random(1,100) <= monsterChance then
+				local pos = placeEntity(room)
+				addMonster(area, pos[1]+1, pos[2]+1)
+			end
+			if math.random(1,100) <= powerupChance then
+				local pup = math.random(1, 3)
+				if pup == 1 then
+					pup = "Damage"
+				elseif pup == 2 then
+					pup = "AttackSpeed"
+				else -- pup == 3
+					pup = "MaxHitPoints"
+				end
+				local pos = placeEntity(room)
+				addStructure(area, pos[1]+1, pos[2]+1, {type = pup})
+			end
+		end
+		local playerPos = placeEntity(lowest)
+		local stairsPos = placeEntity(highest)
+		for y=0,#tiles[0] do
+			for x=0,#tiles do
+				if tiles[x][y] == "#" then
+					setTile(area, x+1, y+1, "Wall")
+				end
+			end
+		end
+		areas[#areas+1] = area
+		stairs[#stairs+1] = stairsPos
+		players[#players+1] = playerPos
+	end
+	for i=1,(numAreas-1) do 
+		local s = stairs[i]
+		local p = players[i+1]
+		addBoss(areas[i], s[1]+1, s[2]+1)
+ 		addStructure(areas[i], s[1]+1, s[2]+1, {
+ 			type = "StairsDown",
+ 			targetArea = areas[i+1],
+ 			targetPosition = Position.new {p[1]+1, p[2]+1}
+ 		})
+		addStructure(areas[i+1], p[1]+1, p[2]+1, {
+			type = "StairsUp",
+			targetArea = areas[i],
+			targetPosition = Position.new {s[1]+1, s[2]+1}
+		})
+	end
+	local final = stairs[#stairs]
+	addBoss(areas[#areas], final[1]+1, final[2]+1)
+ 	addStructure(areas[#areas], final[1]+1, final[2]+1, {type = "MacGuffin"})
 	server:setWorld(world)
 
 	-- Bind to port if specified.
