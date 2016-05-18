@@ -61,23 +61,22 @@ function IntentType.Move:setTarget(pos)
 end
 
 function IntentType.Move:generateAction(entity)
-	local current = entity:getPosition()
-	local target = self:getTarget()
+	local currentPos = entity:getPosition()
+	local targetPos = self:getTarget()
 	local area = entity:getArea()
 	local usePathFinding = true	--enable or disable A* pathfinding
-	
-	if current ~= nil and target ~= nil then
+	if currentPos ~= nil and targetPos ~= nil then
 		local dir = nil
 		local path = nil
 
 		if usePathFinding then
-			path = Astar.path (current, target, area, false)
+			path = Astar.path (currentPos, targetPos, area, false)
 		end
 
 		if path ~= nil and #path > 1 and usePathFinding then
-			dir = current:getDirection(path[2])
+			dir = currentPos:getDirection(path[2])
 		else
-			dir = current:getDirection(target)
+			dir = currentPos:getDirection(targetPos)
 		end
 		
 		return Action.new {
@@ -114,6 +113,8 @@ function IntentType.Attack:generateAction(entity)
 	local target = self:getTarget()
 	local targetArea = target and target:getArea()
 	local targetPos = target and target:getPosition()
+	local usePathFinding = true
+
 	if currentArea ~= nil and currentArea == targetArea
 			and currentPos ~= nil and targetPos ~= nil then
 		if currentPos:getDistance(targetPos) < 1.5 then
@@ -122,6 +123,10 @@ function IntentType.Attack:generateAction(entity)
 				target = target
 			}
 		elseif not self.dontMove then
+			local dir = nil
+			local path = nil
+
+
 			local moveIntent = self.moveIntent
 			if moveIntent == nil then
 				moveIntent = Intent.new {

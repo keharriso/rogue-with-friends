@@ -169,6 +169,7 @@ local function Attack_cache(self, entity)
 	local target = self.target
 	local targetArea = target and target:getArea()
 	local targetPos = target and target:getPosition()
+
 	if area ~= self.area or pos ~= self.position
 			or targetArea ~= self.targetArea
 			or targetPos ~= self.targetPosition then
@@ -176,6 +177,7 @@ local function Attack_cache(self, entity)
 		self.position = pos
 		self.targetArea = targetArea
 		self.targetPosition = targetPos
+
 		if area ~= nil and area == targetArea and pos ~= nil
 				and targetPos ~= nil then
 			self:setDirection(pos:getDirection(targetPos))

@@ -384,7 +384,7 @@ if command == "host" then
 		return {x, y}
 	end
 
-	local monsterChance = 25
+	local monsterChance = 50
 	local powerupChance = 10
 	local numAreas = 5
 	local areas = {}

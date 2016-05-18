@@ -34,7 +34,7 @@ local function getValidNeighbors(area, posA)
 	local neighbors = {}
 	local tempNeighbors = posA:getNeighbors()
 	for dir, pos in pairs(tempNeighbors) do
-		if area:getTile(pos) ~= nil and not area:getTile(pos):getType():isSolid() and not area:getTile(pos):isOccupied()then
+		if area:getTile(pos) ~= nil and not area:getTile(pos):getType():isSolid() then
 			table.insert(neighbors, pos)
 		end
 	end
