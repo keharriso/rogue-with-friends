@@ -446,6 +446,7 @@ if command == "host" then
 	for i=1,(numAreas-1) do 
 		local s = stairs[i]
 		local p = players[i+1]
+		addBoss(areas[i], s[1]+1, s[2]+1)
  		addStructure(areas[i], s[1]+1, s[2]+1, {
  			type = "StairsDown",
  			targetArea = areas[i+1],
