@@ -384,6 +384,8 @@ if command == "host" then
 		return {x, y}
 	end
 
+	local monsterChance = 25
+	local powerupChance = 10
 	local numAreas = 5
 	local areas = {}
 	local stairs = {}
@@ -393,8 +395,6 @@ if command == "host" then
 		local areaH = 25
 		local symbols = {Wall='#', Empty=' ', DoorN=' ', DoorS=' ', DoorE=' ', DoorW=' '}
 		local generator = astray.Astray:new(areaW, areaH, 30, 70, 80, astray.RoomGenerator:new(8, 3, 5, 3, 5) )
-	--	local generator = astray.Astray:new( 5, 5, 1, 15, 5, astray.RoomGenerator:new(1, 1, 2, 1, 2) )
-	--	local generator = astray.Astray:new( 20, 10, 15, 70, 80, astray.RoomGenerator:new(4, 2, 6, 2, 6) )
 		local area = newArea(2*areaW + 1, 2*areaH + 1)
 		local dungeon = generator:GenerateDungeon()
 		generator:GenerateSparsifyMaze(dungeon)
@@ -412,6 +412,22 @@ if command == "host" then
 			end
 			if highest == nil or score > roomScore(highest) then
 				highest = room
+			end
+			if math.random(1,100) <= monsterChance then
+				local pos = placeEntity(room)
+				addMonster(area, pos[1]+1, pos[2]+1)
+			end
+			if math.random(1,100) <= powerupChance then
+				local pup = math.random(1, 3)
+				if pup == 1 then
+					pup = "Damage"
+				elseif pup == 2 then
+					pup = "AttackSpeed"
+				else -- pup == 3
+					pup = "MaxHitPoints"
+				end
+				local pos = placeEntity(room)
+				addStructure(area, pos[1]+1, pos[2]+1, {type = pup})
 			end
 		end
 		local playerPos = placeEntity(lowest)
