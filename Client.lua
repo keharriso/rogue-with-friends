@@ -118,6 +118,11 @@ function Client:hasWon()
 	return self.won and true or false
 end
 
+--Return whether or not PowerUps are available to the player
+function Client:hasAvailablePowerups()
+	return self:getMe():hasAvailablePowerups()
+end
+
 -- Get the state of the underlying connection, returning true for open and
 -- false for closed.
 function Client:isConnected()

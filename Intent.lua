@@ -91,7 +91,8 @@ end
 -- and then generate Attack actions until the target is deceased. Parameters:
 -- {
 --   type = "Attack",
---   target = <Entity> or nil
+--   target = <Entity> or nil,
+--   dontMove = boolean
 -- }
 IntentType.Attack = setmetatable({}, Intent.mt)
 
@@ -120,7 +121,7 @@ function IntentType.Attack:generateAction(entity)
 				type = "Attack",
 				target = target
 			}
-		else
+		elseif not self.dontMove then
 			local moveIntent = self.moveIntent
 			if moveIntent == nil then
 				moveIntent = Intent.new {

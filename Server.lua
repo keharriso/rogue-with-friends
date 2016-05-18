@@ -323,7 +323,7 @@ if command == "host" then
 		local boss = world:newEntity {
 			type = "Boss",
 			faction = "Monsters",
-			ai = AI.new {type = "Aggressive"}
+			ai = AI.new {type = "AggressiveStationary"}
 		}
 		world:apply {
 			type = "Move",
@@ -346,7 +346,7 @@ if command == "host" then
 	setTile(area1, 9, 4, "Wall")
 	setTile(area1, 4, 9, "Wall")
 	setTile(area1, 9, 9, "Wall")
-	addMonster(area1, 6, 6)
+	--addMonster(area1, 6, 6)
 	local area2 = newArea(8, 8)
 	addStructure(area2, 6, 3, {type = "MacGuffin"})
 	addStructure(area1, 6, 6, {type = "Damage"})
@@ -358,12 +358,15 @@ if command == "host" then
 		targetArea = area2,
 		targetPosition = Position.new {5, 5}
 	})
+
 	addStructure(area2, 5, 5, {
 		type = "StairsUp",
 		targetArea = area1,
 		targetPosition = Position.new {7, 7}
 	})
-	addBoss(area2, 4, 4)
+	addBoss(area1, 10, 2)
+	addBoss(area2, 6, 6)
+
 
 	server:setWorld(world)
 

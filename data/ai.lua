@@ -35,4 +35,34 @@ Aggressive = {
 	end
 };
 
+AggressiveStationary = {
+	generateIntent = function (self, entity)
+		local faction = entity:getFaction()
+		local area, pos = entity:getArea(), entity:getPosition()
+		local intent = entity:getIntent()
+		if (intent == nil or intent:getType() ~= "Attack")
+				and area ~= nil and pos ~= nil then
+			for id,target in entity:getWorld():getEntities() do
+				local tFaction = target:getFaction()
+				local tArea = target:getArea()
+				local tPos = target:getPosition()
+				local enemies = tFaction == nil
+						or tFaction ~= faction
+				local triggerAttack = enemies
+						and tArea == area
+						and tPos ~= nil
+						and pos:getDistance(tPos) < 10
+				if triggerAttack then
+					intent = Intent.new {
+						type = "Attack",
+						target = target,
+						dontMove = true
+					}
+				end
+			end
+		end
+		return intent
+	end
+};
+
 }

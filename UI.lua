@@ -73,6 +73,9 @@ function UI:update(dt)
 	if me ~= nil and me.position ~= nil then
 		self:getCenter():pack(me.position:unpack())
 	end
+	if self.client.winTimeRemaining ~=nil and self.client.winTimeRemaining > 0 then
+		self.client.winTimeRemaining = self.client.winTimeRemaining - dt
+	end
 end
 
 -- [private] Rounds to the nearest integer.
@@ -172,6 +175,19 @@ local function drawWin(ui)
 	love.graphics.setFont(winFont)
 	love.graphics.setColor(255, 0, 0)
 	love.graphics.printf("You win!", x, y, width, "center")
+	love.graphics.pop()
+end
+
+local powerUpFontSize = 48
+local powerUpFont = love.graphics.newFont(powerUpFontSize)
+-- [private] Draw a message to inform the player to choose a powerup
+local function drawChoosePowerUpText(ui)
+	local x, y, width, height = ui:getBounds():unpack()
+	y = y + (height - winFontSize) / 2
+	love.graphics.push "all"
+	love.graphics.setFont(winFont)
+	love.graphics.setColor(255, 0, 0)
+	love.graphics.printf("Choose a PowerUp", x, y, width, "center")
 	love.graphics.pop()
 end
 

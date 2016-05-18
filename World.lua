@@ -6,6 +6,7 @@ local Area = require "Area"
 local Effect = require "Effect"
 local Entity = require "Entity"
 local Structure = require "Structure"
+local Position = require "Position"
 
 -- World is the top-level game model class. It consists of a collection of
 -- interconnected Area objects and keeps track of the mapping between IDs and
@@ -192,6 +193,45 @@ function World:newStructure(proto)
 	local structure = Structure.new(proto)
 	self:addStructure(structure)
 	return structure
+end
+
+-- Show PowerUps in a given area and centered around a given position
+function World:addPowerups(area, position)
+	local posAbove = Position.new {position:getX(), position:getY()-1}
+	if not area:getTile(posAbove):getType():isSolid() then 
+		damagePos = Position.new {position:getX()-1, position:getY()-1}
+		attackSpeedPos = Position.new {position:getX(), position:getY()-1}
+		maxHitPointsPos = Position.new {position:getX()+1, position:getY()-1}
+	else
+		damagePos = Position.new {position:getX()-1, position:getY()+1}
+		attackSpeedPos = Position.new {position:getX(), position:getY()+1}
+		maxHitPointsPos = Position.new {position:getX()+1, position:getY()+1}
+	end
+
+	local damagePowerup = self:newStructure({
+		type = "Damage", 
+		area = area,
+		position = damagePos})
+	local attackSpeedPowerup = self:newStructure({
+		type = "AttackSpeed", 
+		area = area,
+		position = attackSpeedPos})
+	local maxHitPointsPowerup = self:newStructure({
+		type = "MaxHitPoints", 
+		area = area,
+		position = maxHitPointsPos})
+
+	area:getTile(damagePos):setStructure(damagePowerup)
+	area:getTile(attackSpeedPos):setStructure(attackSpeedPowerup)
+	area:getTile(maxHitPointsPos):setStructure(maxHitPointsPowerup)
+
+	local powerupsAdded = {}
+	powerupsAdded[1] = damagePowerup
+	powerupsAdded[2] = attackSpeedPowerup
+	powerupsAdded[3] = maxHitPointsPowerup
+	return powerupsAdded
+
+
 end
 
 return World

@@ -226,7 +226,8 @@ end
 -- {
 --   type = "Damage",
 --   entity = <Entity>,
---   damage = <number>
+--   damage = <number>,
+--   source = <Entity>
 -- }
 EffectType.Damage = setmetatable({}, Effect.mt)
 
@@ -240,7 +241,8 @@ function EffectType.Damage:applyEffect(effects)
 	if hitPoints < 1e-6 then
 		effects:apply {
 			type = "Kill",
-			entity = entity
+			entity = entity,
+			source = self.source
 		}
 	else
 		entity:setHitPoints(hitPoints)
@@ -258,6 +260,7 @@ EffectType.Kill = setmetatable({}, Effect.mt)
 
 EffectType.Kill.mt = {__index = EffectType.Kill}
 
+local powerupsAdded = {}
 function EffectType.Kill:applyEffect(effects)
 	local entity = self.entity
 	self.area = entity:getArea()
@@ -273,6 +276,12 @@ function EffectType.Kill:applyEffect(effects)
 	if world ~= nil then
 		world:removeEntity(entity)
 	end
+
+	if entity:getType():getName() == "Boss" then
+		self.source:setAvailablePowerups(true)
+		powerupsAdded = world:addPowerups(self.area, self.position)
+		self.setPowerup = true
+	end
 end
 
 function EffectType.Kill:observeEffect(entity, perception)
@@ -280,6 +289,16 @@ function EffectType.Kill:observeEffect(entity, perception)
 	if entity == self.entity then
 		perception:setDeath(true)
 	end
+
+	if self.setPowerup then 
+		for x = 1 , #powerupsAdded do
+			local pos = powerupsAdded[x]:getPosition()
+			perception:addTileAt(pos)
+			perception:addStructure(powerupsAdded[x])
+		end
+		perception:setPowerUp(true)
+	end
+
 end
 
 -- A Win Effect wins the game. Parameters:
@@ -300,16 +319,18 @@ end
 --   entity = <Entity>,
 --   structure = <Structure>
 -- }
+
 EffectType.RemovePowerUp = setmetatable({}, Effect.mt)
 
 EffectType.RemovePowerUp.mt = {__index = EffectType.RemovePowerUp}
 
+local pos = nil
 function EffectType.RemovePowerUp:applyEffect(effects)
-	print("HERE")
 	local structure = self.structure
 	self.area = structure:getArea()
 	self.position = structure:getPosition()
-	-- Remove the structure from from the area.
+	pos = self.position
+	-- Remove the structure from the area.
 	local world = structure:getWorld()
 	if world ~= nil then
 		world:removeStructure(structure)
@@ -321,6 +342,7 @@ function EffectType.RemovePowerUp:applyEffect(effects)
 end
 
 function EffectType.RemovePowerUp:observeEffect(entity, perception)
+	perception:addTileAt(pos)
 	perception:setPowerUp(true)
 end
 

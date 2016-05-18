@@ -204,7 +204,8 @@ function ActionType.Attack:complete(entity)
 		entity:getWorld():apply {
 			type = "Damage",
 			entity = self.target,
-			damage = self.damage
+			damage = self.damage,
+			source = entity
 		}
 	end
 end

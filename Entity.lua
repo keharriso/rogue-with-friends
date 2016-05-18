@@ -71,6 +71,16 @@ function Entity:update(dt)
 	end
 end
 
+-- Set the Availability of PowerUps for this Entity
+function Entity:setAvailablePowerups(boolean)
+	self.powerUpAvailable = boolean
+end
+
+-- Get the Availability of PowerUps for this Entity
+function Entity:hasAvailablePowerups()
+	return self.powerUpAvailable and true or false
+end
+
 -- Return the ID associated with this Entity.
 function Entity:getId()
 	return self.id
@@ -277,7 +287,6 @@ end
 
 -- Set the base attack damage for this Entity.Type.
 function Entity.Type:setDamage(damage)
-	print("DAMAGEEE", damage)
 	self.damage = damage
 end
 

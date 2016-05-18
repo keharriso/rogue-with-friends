@@ -81,7 +81,7 @@ function Perception:setDeath(death)
 	self.death = death
 end
 
--- Set whether or not the subject of this Perception is standing on a Power Up.
+-- Set whether or not there is a change in PowerUp visibility
 function Perception:setPowerUp(powerUp)
 	self.powerUp = powerUp
 end
