@@ -385,7 +385,7 @@ if command == "host" then
 	end
 
 	local monsterChance = 50
-	local powerupChance = 50
+	local powerupChance = 30
 	local numAreas = 5
 	local areas = {}
 	local stairs = {}

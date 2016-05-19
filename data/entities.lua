@@ -5,15 +5,15 @@
 return {
 
 Human = {
-	moveSpeed = {Ground = 4},
+	moveSpeed = {Ground = 3},
 	hitPoints = 15,
-	damage = 1,
-	attackSpeed = 3
+	damage = 2,
+	attackSpeed = 4
 };
 
 Monster = {
 	moveSpeed = {Ground = 2},
-	hitPoints = 5,
+	hitPoints = 10,
 	damage = 1,
 	attackSpeed = 2
 };
@@ -21,7 +21,7 @@ Monster = {
 Boss = {
 	moveSpeed = {Ground = 1},
 	hitPoints = 20,
-	damage = 3,
-	attackSpeed = 2
+	damage = 1,
+	attackSpeed = 1
 };
 }
