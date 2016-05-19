@@ -385,7 +385,7 @@ if command == "host" then
 	end
 
 	local monsterChance = 50
-	local powerupChance = 10
+	local powerupChance = 50
 	local numAreas = 5
 	local areas = {}
 	local stairs = {}
@@ -418,13 +418,15 @@ if command == "host" then
 				addMonster(area, pos[1]+1, pos[2]+1)
 			end
 			if math.random(1,100) <= powerupChance then
-				local pup = math.random(1, 3)
+				local pup = math.random(1, 6)
 				if pup == 1 then
 					pup = "Damage"
 				elseif pup == 2 then
 					pup = "AttackSpeed"
-				else -- pup == 3
+				elseif pup == 3 then
 					pup = "MaxHitPoints"
+				else
+					pup = "HealthKit"
 				end
 				local pos = placeEntity(room)
 				addStructure(area, pos[1]+1, pos[2]+1, {type = pup})

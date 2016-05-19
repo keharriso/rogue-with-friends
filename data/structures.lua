@@ -99,7 +99,23 @@ MaxHitPoints = {
 		local area, pos = entity:getArea(), entity:getPosition()
 		local tile = area:getTile(pos)
 		local oldMaxHitPoints = entity:getMaxHitPoints()
-		entity:setMaxHitPoints(oldMaxHitPoints + 1)
+		entity:setMaxHitPoints(oldMaxHitPoints + 5)
+		entity:getWorld():apply {
+				type = "RemovePowerUp",
+				entity = entity,
+				structure = self
+			}
+	end
+
+};
+
+HealthKit = {
+	interactTime = 1,
+	interact = function (self, entity)
+		local area, pos = entity:getArea(), entity:getPosition()
+		local tile = area:getTile(pos)
+		local maxHitPoints = entity:getMaxHitPoints()
+		entity:setHitPoints(maxHitPoints)
 		entity:getWorld():apply {
 				type = "RemovePowerUp",
 				entity = entity,
