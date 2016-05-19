@@ -2,8 +2,7 @@
 
 ### About
 
-**Rogue with Friends** is a 2D, real-time, multiplayer roguelike that is in
-very early, pre-alpha development (read: nonexistent).
+**Rogue with Friends** is a 2D, real-time, multiplayer roguelike that is in alpha development.
 
 The game world is a series of procedurally generated floors, rendered as a 2D scrolling field of square tiles with sprite-based objects on them. The objects consist of entities (including both players controlled by humans and enemies controlled by AI) and structures (such as health and damage powerups)
 
